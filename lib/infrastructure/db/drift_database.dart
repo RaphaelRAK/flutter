@@ -110,6 +110,9 @@ class Settings extends Table {
   BoolColumn get isPremium => boolean().withDefault(const Constant(false))();
   BoolColumn get biometricLockEnabled =>
       boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 @DriftDatabase(tables: [
