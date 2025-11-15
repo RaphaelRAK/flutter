@@ -51,24 +51,39 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           });
           switch (index) {
             case 0:
-              context.go('/home');
+              context.go('/dashboard');
               break;
             case 1:
               context.go('/transactions');
               break;
             case 2:
+              context.go('/stats');
+              break;
+            case 3:
+              context.go('/accounts');
+              break;
+            case 4:
               context.go('/settings');
               break;
           }
         },
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Accueil',
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: 'Transactions',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Stats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet),
+            label: 'Comptes',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

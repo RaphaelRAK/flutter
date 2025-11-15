@@ -8,6 +8,10 @@ class AccountsDao extends DatabaseAccessor<AppDatabase>
     with _$AccountsDaoMixin {
   AccountsDao(AppDatabase db) : super(db);
 
+  Stream<List<Account>> watchAllAccounts() {
+    return (select(accounts)..where((a) => a.archived.equals(false))).watch();
+  }
+
   Future<List<Account>> getAllAccounts() {
     return (select(accounts)..where((a) => a.archived.equals(false))).get();
   }
