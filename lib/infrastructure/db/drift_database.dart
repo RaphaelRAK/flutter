@@ -10,10 +10,25 @@ part 'drift_database.g.dart';
 class Accounts extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
-  TextColumn get type => text()(); // 'bank', 'cash', 'wallet'
+  TextColumn get type => text()(); // 'bank', 'cash', 'wallet', 'credit', 'loan', 'savings', 'investment', 'mobile_money', 'custom'
+  TextColumn get accountCategory => text().withDefault(const Constant('asset'))(); // 'asset', 'liability', 'custom'
   RealColumn get initialBalance => real().withDefault(const Constant(0.0))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get icon => text().nullable()(); // Identifiant d'icône personnalisée
+  TextColumn get currency => text().nullable()(); // Devise du compte (null = devise par défaut)
+  TextColumn get notes => text().nullable()(); // Notes/description du compte
+  IntColumn get order => integer().withDefault(const Constant(0))(); // Ordre d'affichage
+  BoolColumn get excludedFromTotal => boolean().withDefault(const Constant(false))(); // Exclure du total des actifs
+  BoolColumn get transferAsExpense => boolean().withDefault(const Constant(false))(); // Traiter les transferts comme dépenses
+  BoolColumn get includeInBudget => boolean().withDefault(const Constant(true))(); // Utiliser pour le budget
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  
+  // Champs spécifiques aux cartes de crédit
+  RealColumn get creditLimit => real().nullable()(); // Limite de crédit
+  IntColumn get billingDay => integer().nullable()(); // Jour de facturation (1-31)
+  IntColumn get paymentDay => integer().nullable()(); // Jour de paiement (1-31)
+  RealColumn get billingBalance => real().nullable()(); // Solde de facturation
+  RealColumn get pendingBalance => real().nullable()(); // Solde en attente
 }
 
 // Table Categories
@@ -110,7 +125,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -120,9 +135,53 @@ class AppDatabase extends _$AppDatabase {
         await _seedDefaultData();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Gérer les migrations futures ici
+        if (from < 2) {
+          // Migration vers la version 2 : Ajouter les nouveaux champs à Accounts
+          // Utiliser une fonction helper pour ajouter les colonnes seulement si elles n'existent pas
+          await _addColumnIfNotExists(m, accounts, accounts.accountCategory);
+          await _addColumnIfNotExists(m, accounts, accounts.icon);
+          await _addColumnIfNotExists(m, accounts, accounts.currency);
+          await _addColumnIfNotExists(m, accounts, accounts.notes);
+          await _addColumnIfNotExists(m, accounts, accounts.order);
+          await _addColumnIfNotExists(m, accounts, accounts.excludedFromTotal);
+          await _addColumnIfNotExists(m, accounts, accounts.transferAsExpense);
+          await _addColumnIfNotExists(m, accounts, accounts.includeInBudget);
+          await _addColumnIfNotExists(m, accounts, accounts.creditLimit);
+          await _addColumnIfNotExists(m, accounts, accounts.billingDay);
+          await _addColumnIfNotExists(m, accounts, accounts.paymentDay);
+          await _addColumnIfNotExists(m, accounts, accounts.billingBalance);
+          await _addColumnIfNotExists(m, accounts, accounts.pendingBalance);
+          
+          // Note: Les valeurs par défaut seront appliquées automatiquement
+          // accountCategory aura la valeur 'asset' par défaut pour tous les comptes existants
+          // Les comptes de type 'credit' et 'loan' seront mis à jour via updateAccountCategoriesAfterMigration()
+          // appelée dans main.dart après l'initialisation
+        }
       },
     );
+  }
+
+  /// Ajoute une colonne seulement si elle n'existe pas déjà
+  Future<void> _addColumnIfNotExists(
+    Migrator m,
+    TableInfo table,
+    GeneratedColumn column,
+  ) async {
+    try {
+      await m.addColumn(table, column);
+    } catch (e) {
+      // Si la colonne existe déjà, on ignore l'erreur
+      // Cela peut arriver si la base de données a été partiellement migrée
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('duplicate column') || 
+          errorStr.contains('already exists') ||
+          errorStr.contains('sql logic error')) {
+        // Colonne déjà existante, on continue
+        return;
+      }
+      // Pour les autres erreurs, on relance
+      rethrow;
+    }
   }
 
   Future<void> _seedDefaultData() async {

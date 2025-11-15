@@ -34,3 +34,33 @@ final transactionsStreamProvider = StreamProvider((ref) {
   return ref.watch(transactionsDaoProvider).watchAllTransactions();
 });
 
+final accountsStreamProvider = StreamProvider((ref) {
+  return ref.watch(accountsDaoProvider).watchAllAccounts();
+});
+
+// Providers pour les comptes par catégorie
+final assetAccountsStreamProvider = StreamProvider((ref) {
+  return ref.watch(accountsDaoProvider).watchAccountsByCategory('asset');
+});
+
+final liabilityAccountsStreamProvider = StreamProvider((ref) {
+  return ref.watch(accountsDaoProvider).watchAccountsByCategory('liability');
+});
+
+final customAccountsStreamProvider = StreamProvider((ref) {
+  return ref.watch(accountsDaoProvider).watchAccountsByCategory('custom');
+});
+
+// Providers pour les totaux
+final totalAssetsProvider = FutureProvider<double>((ref) {
+  return ref.watch(accountsDaoProvider).getTotalAssets();
+});
+
+final totalLiabilitiesProvider = FutureProvider<double>((ref) {
+  return ref.watch(accountsDaoProvider).getTotalLiabilities();
+});
+
+final netWorthProvider = FutureProvider<double>((ref) {
+  return ref.watch(accountsDaoProvider).getNetWorth();
+});
+
