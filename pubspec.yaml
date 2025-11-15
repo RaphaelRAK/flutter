@@ -1,0 +1,62 @@
+name: flut_budget
+description: Application de gestion de budget - Local first, sans compte
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Navigation
+  go_router: ^13.0.0
+
+  # Database
+  drift: ^2.14.1
+  sqlite3_flutter_libs: ^0.5.18
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+  # Secure Storage
+  flutter_secure_storage: ^9.0.0
+
+  # Notifications & Background Tasks
+  flutter_local_notifications: ^17.2.3
+  workmanager: ^0.9.0
+
+  # Charts
+  fl_chart: ^0.66.0
+
+  # Internationalization
+  intl: ^0.20.2
+
+  # Utilities
+  share_plus: ^7.2.1
+  local_auth: ^2.1.7
+
+  # Code Generation
+  build_runner: ^2.4.7
+  drift_dev: ^2.14.1
+  riverpod_generator: ^2.3.9
+  json_annotation: ^4.8.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+
