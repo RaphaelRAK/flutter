@@ -7,6 +7,7 @@ import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../domain/models/account_type.dart';
+import '../../../../../core/widgets/main_bottom_nav_bar.dart';
 
 final accountsStreamProvider = StreamProvider((ref) {
   return ref.watch(accountsDaoProvider).watchAllAccounts();
@@ -35,6 +36,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: const MainBottomNavBar(currentIndex: 2),
       body: settingsAsync.when(
         data: (settings) => accountsAsync.when(
           data: (accounts) => _buildContent(context, accounts, settings),

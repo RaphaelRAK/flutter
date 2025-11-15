@@ -19,7 +19,7 @@ final appRouterProvider = FutureProvider<GoRouter>((ref) async {
   final isFirstLaunch = await PreferencesHelper.isFirstLaunch();
   
   return GoRouter(
-    initialLocation: isFirstLaunch ? '/onboarding' : '/home',
+    initialLocation: isFirstLaunch ? '/onboarding' : '/transactions',
     routes: [
       GoRoute(
         path: '/onboarding',

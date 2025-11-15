@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/main_bottom_nav_bar.dart';
 
 class StatsScreen extends ConsumerStatefulWidget {
   const StatsScreen({super.key});
@@ -38,6 +39,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: const MainBottomNavBar(currentIndex: 1),
       body: settingsAsync.when(
         data: (settings) => transactionsAsync.when(
           data: (transactions) => _buildContent(context, transactions, settings),

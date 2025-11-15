@@ -1,0 +1,282 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
+import '../../../../infrastructure/db/database_provider.dart';
+import '../../../../infrastructure/db/drift_database.dart';
+import '../../../../core/theme/app_colors.dart';
+import 'transaction_detail_dialog.dart';
+
+bool isSameDay(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+class TransactionsCalendarView extends ConsumerStatefulWidget {
+  const TransactionsCalendarView({super.key});
+
+  @override
+  ConsumerState<TransactionsCalendarView> createState() =>
+      _TransactionsCalendarViewState();
+}
+
+class _TransactionsCalendarViewState
+    extends ConsumerState<TransactionsCalendarView> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime _selectedDay = DateTime.now();
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+
+  @override
+  Widget build(BuildContext context) {
+    final transactionsAsync = ref.watch(transactionsStreamProvider);
+
+    return transactionsAsync.when(
+      data: (transactions) {
+        // Grouper les transactions par date
+        final transactionsByDate = <DateTime, List<Transaction>>{};
+        for (final transaction in transactions) {
+          final date = DateTime(
+            transaction.date.year,
+            transaction.date.month,
+            transaction.date.day,
+          );
+          transactionsByDate.putIfAbsent(date, () => []).add(transaction);
+        }
+
+        // Calculer les montants par jour
+        final amountsByDate = <DateTime, double>{};
+        for (final entry in transactionsByDate.entries) {
+          double total = 0.0;
+          for (final transaction in entry.value) {
+            if (transaction.type == 'expense') {
+              total -= transaction.amount;
+            } else if (transaction.type == 'income') {
+              total += transaction.amount;
+            }
+          }
+          amountsByDate[entry.key] = total;
+        }
+
+        return Column(
+          children: [
+            Card(
+              margin: const EdgeInsets.all(16),
+              child: TableCalendar<Transaction>(
+                firstDay: DateTime.utc(2020, 1, 1),
+                lastDay: DateTime.utc(2030, 12, 31),
+                focusedDay: _focusedDay,
+                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                calendarFormat: _calendarFormat,
+                eventLoader: (day) {
+                  final date = DateTime(day.year, day.month, day.day);
+                  return transactionsByDate[date] ?? [];
+                },
+                startingDayOfWeek: StartingDayOfWeek.monday,
+                calendarStyle: CalendarStyle(
+                  outsideDaysVisible: false,
+                  todayDecoration: BoxDecoration(
+                    color: AppColors.accentSecondary.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  selectedDecoration: const BoxDecoration(
+                    color: AppColors.accentSecondary,
+                    shape: BoxShape.circle,
+                  ),
+                  markerDecoration: const BoxDecoration(
+                    color: AppColors.accentPrimary,
+                    shape: BoxShape.circle,
+                  ),
+                  markersMaxCount: 3,
+                  markerSize: 6,
+                ),
+                headerStyle: HeaderStyle(
+                  formatButtonVisible: true,
+                  titleCentered: true,
+                  formatButtonShowsNext: false,
+                  formatButtonDecoration: BoxDecoration(
+                    color: AppColors.accentSecondary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  formatButtonTextStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                onPageChanged: (focusedDay) {
+                  _focusedDay = focusedDay;
+                },
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, date, events) {
+                    if (events.isEmpty) return const SizedBox.shrink();
+                    final amount = amountsByDate[date] ?? 0.0;
+                    return Positioned(
+                      bottom: 1,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: amount >= 0
+                              ? AppColors.income.withOpacity(0.8)
+                              : AppColors.expense.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${amount >= 0 ? '+' : ''}${NumberFormat.currency(symbol: '€', decimalDigits: 0).format(amount.abs())}',
+                          style: const TextStyle(
+                            fontSize: 8,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Expanded(
+              child: _buildSelectedDayTransactions(
+                transactionsByDate[_selectedDay] ?? [],
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text('Erreur: $error'),
+      ),
+    );
+  }
+
+  Widget _buildSelectedDayTransactions(List<Transaction> transactions) {
+    if (transactions.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 64,
+              color: AppColors.darkTextSecondary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Aucune transaction ce jour',
+              style: TextStyle(
+                color: AppColors.darkTextSecondary,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        final transaction = transactions[index];
+        return _buildTransactionCard(transaction);
+      },
+    );
+  }
+
+  Widget _buildTransactionCard(Transaction transaction) {
+    final isExpense = transaction.type == 'expense';
+    final isIncome = transaction.type == 'income';
+
+    Color amountColor;
+    IconData iconData;
+    String prefix = '';
+
+    if (isExpense) {
+      amountColor = AppColors.expense;
+      iconData = Icons.arrow_downward;
+      prefix = '-';
+    } else if (isIncome) {
+      amountColor = AppColors.income;
+      iconData = Icons.arrow_upward;
+      prefix = '+';
+    } else {
+      amountColor = AppColors.transfer;
+      iconData = Icons.swap_horiz;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) => TransactionDetailDialog(transaction: transaction),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: amountColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(iconData, color: amountColor),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      transaction.description ?? 'Sans description',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      DateFormat('HH:mm').format(transaction.date),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.darkTextSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '$prefix${NumberFormat.currency(symbol: '€', decimalDigits: 2).format(transaction.amount)}',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: amountColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

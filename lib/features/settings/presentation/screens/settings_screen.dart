@@ -7,6 +7,7 @@ import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/preferences_helper.dart';
+import '../../../../../core/widgets/main_bottom_nav_bar.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -26,6 +27,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(
         title: const Text('Paramètres'),
       ),
+      bottomNavigationBar: const MainBottomNavBar(currentIndex: 3),
       body: settingsAsync.when(
         data: (settings) => _buildContent(context, settings),
         loading: () => const Center(child: CircularProgressIndicator()),

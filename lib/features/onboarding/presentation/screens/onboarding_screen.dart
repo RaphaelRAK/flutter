@@ -57,7 +57,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await PreferencesHelper.setFirstLaunchCompleted();
 
       if (mounted) {
-        context.go('/home');
+        context.go('/transactions');
       }
     } catch (e) {
       // En cas d'erreur, on crée les settings s'ils n'existent pas
@@ -83,7 +83,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await PreferencesHelper.setFirstLaunchCompleted();
 
       if (mounted) {
-        context.go('/home');
+        context.go('/transactions');
       }
     }
   }
