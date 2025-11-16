@@ -502,18 +502,18 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
 
       return PieChartSectionData(
         value: data.amount,
-        title: percentage > 5 ? '${percentage.toStringAsFixed(1)}%' : '',
+        title: percentage > 8 ? '${percentage.toStringAsFixed(1)}%' : '',
         color: categoryColor,
-        radius: isSelected ? 110 : 100,
+        radius: isSelected ? 50 : 45,
         titleStyle: TextStyle(
-          fontSize: 12,
+          fontSize: 10,
           fontWeight: FontWeight.bold,
           color: _getContrastColor(categoryColor),
         ),
-        badgeWidget: percentage > 5
+        badgeWidget: percentage > 8
             ? null
             : Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   color: categoryColor,
                   shape: BoxShape.circle,
@@ -521,13 +521,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
                 child: Text(
                   '${percentage.toStringAsFixed(0)}%',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 8,
                     fontWeight: FontWeight.bold,
                     color: _getContrastColor(categoryColor),
                   ),
                 ),
               ),
-        badgePositionPercentageOffset: 1.3,
+        badgePositionPercentageOffset: 1.4, // Augmenter de 1.2 à 1.4 pour éloigner les badges
       );
     }).toList();
 
@@ -546,14 +546,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen>
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 25), // Ajouter cet espacement
             SizedBox(
               height: 220,
               child: PieChart(
                 PieChartData(
-                  sections: sections,
+                  sections: sections.take(5).toList(),
                   centerSpaceRadius: 45,
-                  sectionsSpace: 2,
+                  sectionsSpace: 4, // Augmenter de 2 à 4 pour plus d'espace
                   pieTouchData: PieTouchData(
                     touchCallback: (FlTouchEvent event, pieTouchResponse) {
                       setState(() {
