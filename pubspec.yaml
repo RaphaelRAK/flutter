@@ -45,6 +45,7 @@ dependencies:
   local_auth: ^2.1.7
   url_launcher: ^6.2.5
   image_picker: ^1.0.7
+  crypto: ^3.0.3
 
   # Code Generation
   build_runner: ^2.4.7

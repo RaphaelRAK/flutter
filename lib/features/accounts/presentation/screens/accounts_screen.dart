@@ -550,7 +550,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
             ListTile(
               leading: Icon(account.transferAsExpense ? Icons.check_circle : Icons.circle_outlined),
-              title: const Text('Transfer as Expense'),
+              title: const Text('Traiter les transferts comme dépenses'),
               onTap: () {
                 _toggleTransferAsExpense(account);
                 Navigator.pop(context);
@@ -1019,8 +1019,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           SnackBar(
             content: Text(
               account.transferAsExpense
-                  ? 'Transfer as Expense désactivé'
-                  : 'Transfer as Expense activé',
+                  ? 'Transferts comme dépenses désactivé'
+                  : 'Transferts comme dépenses activé',
             ),
           ),
         );

@@ -39,7 +39,7 @@ class _TransactionsWeeklyViewState
 
   @override
   Widget build(BuildContext context) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final transactionsAsync = ref.watch(filteredTransactionsStreamProvider);
 
     return transactionsAsync.when(
       data: (allTransactions) {

@@ -7,6 +7,7 @@ import '../widgets/transactions_weekly_view.dart';
 import '../widgets/transactions_monthly_view.dart';
 import '../widgets/transactions_total_view.dart';
 import '../widgets/transactions_list_view.dart';
+import '../../../settings/presentation/screens/transaction_filters_screen.dart';
 
 enum TransactionsViewType {
   list,
@@ -61,14 +62,27 @@ class _TransactionsListScreenState
       });
     }
 
+    final filters = ref.watch(transactionFiltersProvider);
+    final hasActiveFilters = filters != null && filters.hasFilters;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transactions'),
         actions: [
+          if (hasActiveFilters)
+            IconButton(
+              icon: const Icon(Icons.filter_alt),
+              color: Colors.blue,
+              tooltip: 'Filtres actifs',
+              onPressed: () {
+                context.push('/transaction-filters');
+              },
+            ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filtrage et recherche',
             onPressed: () {
-              // TODO: Implémenter la recherche
+              context.push('/transaction-filters');
             },
           ),
         ],

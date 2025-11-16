@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:local_auth/local_auth.dart' as local_auth;
 import 'package:drift/drift.dart' show Value;
 import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/main_bottom_nav_bar.dart';
 import '../../../../../core/utils/currencies_list.dart';
+import '../../../../../core/localization/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -17,15 +17,15 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  final local_auth.LocalAuthentication _localAuth = local_auth.LocalAuthentication();
-
   @override
   Widget build(BuildContext context) {
     final settingsAsync = ref.watch(settingsStreamProvider);
 
+    final l10n = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Paramètres'),
+        title: Text(l10n?.settings ?? 'Paramètres'),
       ),
       bottomNavigationBar: const MainBottomNavBar(currentIndex: 3),
       body: settingsAsync.when(
@@ -37,18 +37,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildContent(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         // Apparence
-        _buildSectionHeader(context, 'Apparence'),
+        _buildSectionHeader(context, l10n.translate('appearance')),
         _buildThemeSelector(context, settings),
         _buildStartScreenSelector(context, settings),
         _buildColorCustomization(context, settings),
         const SizedBox(height: 24),
 
         // Général
-        _buildSectionHeader(context, 'Général'),
+        _buildSectionHeader(context, l10n.translate('general')),
         _buildLanguageSelector(context, settings),
         _buildCurrencySelector(context, settings),
         _buildSubCurrencies(context, settings),
@@ -56,25 +57,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const SizedBox(height: 24),
 
         // Transactions
-        _buildSectionHeader(context, 'Transactions'),
+        _buildSectionHeader(context, l10n.transactions),
         _buildTransactionRecurrence(context, settings),
         _buildTransactionReminders(context, settings),
         _buildTransactionFilters(context, settings),
         const SizedBox(height: 24),
 
         // Sécurité
-        _buildSectionHeader(context, 'Sécurité'),
+        _buildSectionHeader(context, l10n.translate('security')),
         _buildPasscodeSettings(context, settings),
         const SizedBox(height: 24),
 
         // Sauvegarde
-        _buildSectionHeader(context, 'Sauvegarde'),
+        _buildSectionHeader(context, l10n.translate('backup')),
         _buildBackupRestore(context, settings),
         _buildExportData(context, settings),
         const SizedBox(height: 24),
 
         // Avancé
-        _buildSectionHeader(context, 'Avancé'),
+        _buildSectionHeader(context, l10n.translate('advanced')),
         _buildMonthStartDate(context, settings),
         _buildSubCategoryToggle(context, settings),
         _buildPcManager(context, settings),
@@ -96,11 +97,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildThemeSelector(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.palette),
-        title: const Text('Thème'),
-        subtitle: Text(settings.theme == 'dark' ? 'Sombre' : 'Clair'),
+        title: Text(l10n.translate('theme')),
+        subtitle: Text(settings.theme == 'dark' ? l10n.translate('dark') : l10n.translate('light')),
         trailing: Switch(
           value: settings.theme == 'dark',
           onChanged: (value) => _updateTheme(value ? 'dark' : 'light'),
@@ -110,11 +112,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildStartScreenSelector(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.home),
-        title: const Text('Écran de démarrage'),
-        subtitle: const Text('Choisir l\'écran au démarrage'),
+        title: Text(l10n.translate('start_screen')),
+        subtitle: Text(l10n.translate('choose_start_screen')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showStartScreenDialog(context, settings),
       ),
@@ -122,11 +125,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildColorCustomization(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.color_lens),
-        title: const Text('Couleurs personnalisées'),
-        subtitle: const Text('Revenus / Dépenses'),
+        title: Text(l10n.translate('custom_colors')),
+        subtitle: Text(l10n.translate('income_expense')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showColorCustomizationDialog(context),
       ),
@@ -134,22 +138,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildLanguageSelector(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
+    final languageCode = settings.language;
+    final languageName = _getLanguageName(languageCode, l10n);
+    
     return Card(
       child: ListTile(
         leading: const Icon(Icons.language),
-        title: const Text('Langue'),
-        subtitle: const Text('Français'),
+        title: Text(l10n.language),
+        subtitle: Text(languageName),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => _showLanguageDialog(context),
+        onTap: () => _showLanguageDialog(context, settings),
       ),
     );
   }
 
   Widget _buildCurrencySelector(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.currency_exchange),
-        title: const Text('Devise principale'),
+        title: Text(l10n.translate('main_currency')),
         subtitle: Text(settings.currency),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showCurrencyDialog(context, settings),
@@ -158,11 +167,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildSubCurrencies(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.attach_money),
-        title: const Text('Sous-devises'),
-        subtitle: const Text('Ajouter des devises supplémentaires'),
+        title: Text(l10n.translate('sub_currencies')),
+        subtitle: Text(l10n.translate('add_currencies')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showSubCurrenciesDialog(context),
       ),
@@ -170,12 +180,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildDecimalPlaces(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     final decimalPlaces = settings.decimalPlaces ?? 2;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.numbers),
-        title: const Text('Décimales'),
-        subtitle: Text('$decimalPlaces ${decimalPlaces > 1 ? 'décimales' : 'décimale'}'),
+        title: Text(l10n.translate('decimals')),
+        subtitle: Text('$decimalPlaces ${decimalPlaces > 1 ? l10n.translate('decimals') : l10n.translate('decimal')}'),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showDecimalPlacesDialog(context, settings),
       ),
@@ -183,11 +194,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildTransactionRecurrence(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.repeat),
-        title: const Text('Répétition des transactions'),
-        subtitle: const Text('Gérer les transactions récurrentes'),
+        title: Text(l10n.translate('transaction_recurrence')),
+        subtitle: Text(l10n.translate('manage_recurring')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/recurring-transactions'),
       ),
@@ -195,11 +207,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildTransactionReminders(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.notifications),
-        title: const Text('Rappels (alarme)'),
-        subtitle: const Text('Gérer les rappels de dépenses'),
+        title: Text(l10n.translate('reminders')),
+        subtitle: Text(l10n.translate('manage_reminders')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/reminders'),
       ),
@@ -207,11 +220,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildTransactionFilters(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.filter_list),
-        title: const Text('Filtrage et recherche'),
-        subtitle: const Text('Options de filtrage des transactions'),
+        title: Text(l10n.translate('filtering_search')),
+        subtitle: Text(l10n.translate('filter_options')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/transaction-filters'),
       ),
@@ -219,33 +233,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildPasscodeSettings(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
-      child: SwitchListTile(
-        secondary: const Icon(Icons.lock),
-        title: const Text('Verrouillage par code'),
-        subtitle: const Text('Protéger l\'application avec un code PIN'),
-        value: settings.biometricLockEnabled,
-        onChanged: (value) => _toggleBiometricLock(value),
+      child: ListTile(
+        leading: const Icon(Icons.lock),
+        title: Text(l10n.translate('code_lock')),
+        subtitle: Text(
+          settings.biometricLockEnabled
+              ? l10n.translate('lock_enabled')
+              : l10n.translate('protect_app'),
+        ),
+        trailing: settings.biometricLockEnabled
+            ? const Icon(Icons.check_circle, color: Colors.green)
+            : const Icon(Icons.chevron_right),
+        onTap: () => context.push('/lock-setup'),
       ),
     );
   }
 
   Widget _buildBackupRestore(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Column(
         children: [
           ListTile(
             leading: const Icon(Icons.backup),
-            title: const Text('Sauvegarde'),
-            subtitle: const Text('Sauvegarder sur Google Drive'),
+            title: Text(l10n.translate('backup')),
+            subtitle: Text(l10n.translate('backup_google_drive')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _performBackup(context),
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.restore),
-            title: const Text('Restauration'),
-            subtitle: const Text('Restaurer depuis une sauvegarde'),
+            title: Text(l10n.translate('restore')),
+            subtitle: Text(l10n.translate('restore_backup')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _performRestore(context),
           ),
@@ -255,11 +277,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildExportData(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.file_download),
-        title: const Text('Exporter les données'),
-        subtitle: const Text('Excel, CSV, TXT'),
+        title: Text(l10n.translate('export_data')),
+        subtitle: Text(l10n.translate('export_formats')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showExportDialog(context),
       ),
@@ -267,11 +290,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildMonthStartDate(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.calendar_today),
-        title: const Text('Date de début du mois'),
-        subtitle: const Text('Personnaliser le cycle budgétaire'),
+        title: Text(l10n.translate('month_start_date')),
+        subtitle: Text(l10n.translate('customize_budget_cycle')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showMonthStartDateDialog(context),
       ),
@@ -279,11 +303,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildSubCategoryToggle(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: SwitchListTile(
         secondary: const Icon(Icons.category),
-        title: const Text('Sous-catégories'),
-        subtitle: const Text('Activer/désactiver les sous-catégories'),
+        title: Text(l10n.translate('subcategories')),
+        subtitle: Text(l10n.translate('enable_disable_subcategories')),
         value: true, // TODO: Récupérer depuis settings
         onChanged: (value) {
           // TODO: Sauvegarder dans settings
@@ -293,11 +318,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildPcManager(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         leading: const Icon(Icons.computer),
-        title: const Text('PC Manager'),
-        subtitle: const Text('Voir et modifier via WiFi sur PC'),
+        title: Text(l10n.translate('pc_manager')),
+        subtitle: Text(l10n.translate('wifi_access')),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => _showPcManagerDialog(context),
       ),
@@ -306,15 +332,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   // Dialogues et actions
   void _showStartScreenDialog(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Écran de démarrage'),
+        title: Text(l10n.translate('start_screen')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<String>(
-              title: const Text('Daily'),
+              title: Text(l10n.translate('daily')),
               value: 'daily',
               groupValue: 'daily', // TODO: Récupérer depuis settings
               onChanged: (value) {
@@ -323,7 +350,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               },
             ),
             RadioListTile<String>(
-              title: const Text('Calendar'),
+              title: Text(l10n.translate('calendar')),
               value: 'calendar',
               groupValue: 'daily',
               onChanged: (value) {
@@ -425,33 +452,139 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           );
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Couleurs mises à jour')),
+          SnackBar(content: Text(l10n.translate('colors_updated'))),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${l10n.translate('error')}: $e')),
         );
       }
     }
   }
 
-  void _showLanguageDialog(BuildContext context) {
+  void _showLanguageDialog(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentLanguage = settings.language;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Langue'),
-        content: const Text('Sélectionnez votre langue'),
+        title: Text(l10n.language),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<String>(
+              title: Text(l10n.translate('french')),
+              value: 'fr',
+              groupValue: currentLanguage,
+              onChanged: (value) {
+                if (value != null) {
+                  _updateLanguage(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: Text(l10n.translate('english')),
+              value: 'en',
+              groupValue: currentLanguage,
+              onChanged: (value) {
+                if (value != null) {
+                  _updateLanguage(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: Text(l10n.translate('spanish')),
+              value: 'es',
+              groupValue: currentLanguage,
+              onChanged: (value) {
+                if (value != null) {
+                  _updateLanguage(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: Text(l10n.translate('chinese')),
+              value: 'zh',
+              groupValue: currentLanguage,
+              onChanged: (value) {
+                if (value != null) {
+                  _updateLanguage(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            RadioListTile<String>(
+              title: Text(l10n.translate('malagasy')),
+              value: 'mg',
+              groupValue: currentLanguage,
+              onChanged: (value) {
+                if (value != null) {
+                  _updateLanguage(value);
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
     );
+  }
+
+  String _getLanguageName(String code, AppLocalizations l10n) {
+    switch (code) {
+      case 'en':
+        return l10n.translate('english');
+      case 'es':
+        return l10n.translate('spanish');
+      case 'zh':
+        return l10n.translate('chinese');
+      case 'mg':
+        return l10n.translate('malagasy');
+      case 'fr':
+      default:
+        return l10n.translate('french');
+    }
+  }
+
+  Future<void> _updateLanguage(String language) async {
+    try {
+      await ref.read(settingsDaoProvider).updateSettings(
+            SettingsCompanion(
+              id: const Value(1),
+              language: Value(language),
+            ),
+          );
+      if (mounted) {
+        // Invalider le provider pour forcer la reconstruction de l'app
+        ref.invalidate(settingsStreamProvider);
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.translate('language_updated'))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${l10n.translate('error')}: $e')),
+        );
+      }
+    }
   }
 
   void _showCurrencyDialog(BuildContext context, dynamic settings) {
@@ -663,37 +796,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _toggleBiometricLock(bool enabled) async {
-    try {
-      final isAvailable = await _localAuth.canCheckBiometrics;
-      if (!isAvailable && enabled) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Biométrie non disponible')),
-          );
-        }
-        return;
-      }
-
-      await ref.read(settingsDaoProvider).updateSettings(
-            SettingsCompanion(
-              id: Value(1),
-              biometricLockEnabled: Value(enabled),
-            ),
-          );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(enabled ? 'Verrouillage activé' : 'Verrouillage désactivé')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
-      }
-    }
-  }
 
   Future<void> _performBackup(BuildContext context) async {
     ScaffoldMessenger.of(context).showSnackBar(

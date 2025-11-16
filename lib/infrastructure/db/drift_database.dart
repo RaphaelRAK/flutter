@@ -135,6 +135,7 @@ class Settings extends Table {
   TextColumn get incomeColor => text().nullable()(); // Couleur personnalisée pour les revenus (format hex: #RRGGBB)
   TextColumn get expenseColor => text().nullable()(); // Couleur personnalisée pour les dépenses (format hex: #RRGGBB)
   IntColumn get decimalPlaces => integer().withDefault(const Constant(2))(); // Nombre de décimales à afficher (0-4)
+  TextColumn get language => text().withDefault(const Constant('fr'))(); // Code langue: 'fr', 'en', 'es', 'zh', 'mg'
 
   @override
   Set<Column> get primaryKey => {id};
@@ -155,7 +156,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration {
@@ -207,6 +208,20 @@ class AppDatabase extends _$AppDatabase {
         if (from < 7) {
           // Migration vers la version 7 : Créer la table Reminders
           await m.createTable(reminders);
+        }
+        if (from < 8) {
+          // Migration vers la version 8 : Ajouter le champ language
+          try {
+            await m.addColumn(settings, settings.language);
+          } catch (e) {
+            // Si la colonne existe déjà, on ignore l'erreur
+            final errorStr = e.toString().toLowerCase();
+            if (!errorStr.contains('duplicate column') && 
+                !errorStr.contains('already exists') &&
+                !errorStr.contains('sql logic error')) {
+              rethrow;
+            }
+          }
         }
       },
     );
@@ -297,6 +312,7 @@ class AppDatabase extends _$AppDatabase {
         isPremium: Value(false),
         biometricLockEnabled: Value(false),
         decimalPlaces: Value(2),
+        language: Value('fr'),
       ),
     );
 

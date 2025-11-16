@@ -11,7 +11,7 @@ class TransactionsListView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionsStreamProvider);
+    final transactionsAsync = ref.watch(filteredTransactionsStreamProvider);
 
     return transactionsAsync.when(
       data: (transactions) {

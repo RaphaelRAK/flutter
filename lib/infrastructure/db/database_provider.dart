@@ -7,6 +7,8 @@ import 'daos/settings_dao.dart';
 import 'daos/custom_currencies_dao.dart';
 import 'daos/recurring_rules_dao.dart';
 import 'daos/reminders_dao.dart';
+import '../../core/utils/transaction_filters_helper.dart';
+import '../../features/settings/presentation/screens/transaction_filters_screen.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase();
@@ -47,6 +49,16 @@ final settingsStreamProvider = StreamProvider((ref) {
 
 final transactionsStreamProvider = StreamProvider((ref) {
   return ref.watch(transactionsDaoProvider).watchAllTransactions();
+});
+
+// Provider pour les transactions filtrées
+final filteredTransactionsStreamProvider = StreamProvider<List<Transaction>>((ref) {
+  final filters = ref.watch(transactionFiltersProvider);
+  final transactionsStream = ref.watch(transactionsDaoProvider).watchAllTransactions();
+  
+  return transactionsStream.map((transactions) {
+    return TransactionFiltersHelper.applyFilters(transactions, filters);
+  });
 });
 
 final accountsStreamProvider = StreamProvider((ref) {

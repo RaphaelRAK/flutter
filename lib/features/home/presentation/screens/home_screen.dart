@@ -66,7 +66,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            'The easiest way to manage personal finances',
+            'La façon la plus simple de gérer vos finances personnelles',
             style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),

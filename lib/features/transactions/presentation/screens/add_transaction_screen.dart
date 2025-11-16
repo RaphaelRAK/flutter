@@ -9,7 +9,8 @@ import 'package:path/path.dart' as path;
 import '../../../../infrastructure/db/database_provider.dart';
 import '../../../../infrastructure/db/drift_database.dart';
 import '../../../../domain/models/transaction_type.dart';
-import '../../../accounts/presentation/screens/accounts_screen.dart';
+import '../../../../core/utils/category_icons.dart';
+import '../../../../core/localization/app_localizations.dart';
 import 'dart:io';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
@@ -100,9 +101,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               : _selectedType.value,
         );
 
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.transactionToEdit == null ? 'Nouvelle transaction' : 'Modifier la transaction'),
+        title: Text(widget.transactionToEdit == null ? l10n.newTransaction : l10n.editTransaction),
         bottom: TabBar(
           controller: _tabController,
           tabs: TransactionType.values.map((type) {
@@ -127,7 +130,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               accountsAsync.when(
                 data: (accounts) => _buildAccountField(accounts),
                 loading: () => const CircularProgressIndicator(),
-                error: (e, _) => Text('Erreur: $e'),
+                error: (e, _) => Text('${AppLocalizations.of(context)?.translate('error') ?? 'Erreur'}: $e'),
               ),
 
             // Transfert : Compte source et destination
@@ -135,13 +138,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               accountsAsync.when(
                 data: (accounts) => Column(
                   children: [
-                    _buildAccountField(accounts, label: 'De'),
+                    _buildAccountField(accounts, label: AppLocalizations.of(context)!.translate('from')),
                     const SizedBox(height: 16),
-                    _buildAccountField(accounts, label: 'Vers', isToAccount: true),
+                    _buildAccountField(accounts, label: AppLocalizations.of(context)!.translate('to'), isToAccount: true),
                   ],
                 ),
                 loading: () => const CircularProgressIndicator(),
-                error: (e, _) => Text('Erreur: $e'),
+                error: (e, _) => Text('${AppLocalizations.of(context)?.translate('error') ?? 'Erreur'}: $e'),
               ),
 
             const SizedBox(height: 16),
@@ -155,7 +158,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                     return const CircularProgressIndicator();
                   }
                   if (snapshot.hasError) {
-                    return Text('Erreur: ${snapshot.error}');
+                    return Text('${AppLocalizations.of(context)?.translate('error') ?? 'Erreur'}: ${snapshot.error}');
                   }
                   return _buildCategoryField(snapshot.data ?? []);
                 },
@@ -188,12 +191,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildDateField() {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Column(
         children: [
           ListTile(
             leading: const Icon(Icons.calendar_today),
-            title: const Text('Date'),
+            title: Text(l10n.date),
             subtitle: Text(DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(_selectedDate)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () async {
@@ -220,7 +224,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.access_time),
-            title: const Text('Heure'),
+            title: Text(AppLocalizations.of(context)!.time),
             subtitle: Text(DateFormat('HH:mm', 'fr_FR').format(_selectedDate)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () async {
@@ -251,6 +255,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildAccountField(List<Account> accounts, {String? label, bool isToAccount = false}) {
+    final l10n = AppLocalizations.of(context)!;
     if (accounts.isEmpty) {
       return Card(
         child: Padding(
@@ -259,11 +264,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             children: [
               const Icon(Icons.account_balance_wallet, size: 48),
               const SizedBox(height: 8),
-              const Text('Aucun compte disponible'),
+              Text(AppLocalizations.of(context)!.translate('no_account_available')),
               const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () => context.push('/accounts'),
-                child: const Text('Créer un compte'),
+              ElevatedButton.icon(
+                onPressed: () => _showAddAccountDialog(context),
+                icon: const Icon(Icons.add),
+                label: Text(AppLocalizations.of(context)!.translate('create_account')),
               ),
             ],
           ),
@@ -319,7 +325,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         },
         validator: (value) {
           if (value == null) {
-            return 'Veuillez sélectionner un compte';
+            return l10n.translate('select_account');
           }
           return null;
         },
@@ -328,34 +334,61 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildCategoryField(List<Category> categories) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: DropdownButtonFormField<int>(
-        decoration: const InputDecoration(
-          labelText: 'Catégorie',
-          prefixIcon: Icon(Icons.category),
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: l10n.category,
+          prefixIcon: const Icon(Icons.category),
+          border: const OutlineInputBorder(),
         ),
         value: _selectedCategoryId,
-        items: categories.map((category) {
-          return DropdownMenuItem<int>(
-            value: category.id,
+        items: [
+          ...categories.map((category) {
+            return DropdownMenuItem<int>(
+              value: category.id,
+              child: Row(
+                children: [
+                  Icon(
+                    CategoryIcons.getCategoryIcon(category.name, category.icon),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(category.name),
+                ],
+              ),
+            );
+          }).toList(),
+          DropdownMenuItem<int>(
+            value: -1, // Valeur spéciale pour "Ajouter une catégorie"
             child: Row(
               children: [
-                Text(category.icon, style: const TextStyle(fontSize: 20)),
+                const Icon(Icons.add, size: 20),
                 const SizedBox(width: 8),
-                Text(category.name),
+                Text(
+                  l10n.addCategory,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
-          );
-        }).toList(),
+          ),
+        ],
         onChanged: (value) {
-          setState(() {
-            _selectedCategoryId = value;
-          });
+          if (value == -1) {
+            // Ouvrir le dialogue pour ajouter une catégorie
+            _showAddCategoryDialog(context);
+          } else {
+            setState(() {
+              _selectedCategoryId = value;
+            });
+          }
         },
         validator: (value) {
-          if (value == null) {
-            return 'Veuillez sélectionner une catégorie';
+          if (value == null || value == -1) {
+            return l10n.translate('select_category');
           }
           return null;
         },
@@ -364,23 +397,24 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildAmountField() {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: TextFormField(
         controller: _amountController,
-        decoration: const InputDecoration(
-          labelText: 'Montant',
-          prefixIcon: Icon(Icons.euro),
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: l10n.amount,
+          prefixIcon: const Icon(Icons.euro),
+          border: const OutlineInputBorder(),
           hintText: '0.00',
         ),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return 'Veuillez entrer un montant';
+            return l10n.translate('enter_amount');
           }
           final amount = double.tryParse(value);
           if (amount == null || amount <= 0) {
-            return 'Montant invalide';
+            return l10n.translate('invalid_amount');
           }
           return null;
         },
@@ -454,11 +488,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     return Card(
       child: TextFormField(
         controller: _noteController,
-        decoration: const InputDecoration(
-          labelText: 'Note / Description',
-          prefixIcon: Icon(Icons.note),
-          border: OutlineInputBorder(),
-          hintText: 'Ajouter une note...',
+        decoration: InputDecoration(
+          labelText: AppLocalizations.of(context)!.translate('note_description'),
+          prefixIcon: const Icon(Icons.note),
+          border: const OutlineInputBorder(),
+          hintText: AppLocalizations.of(context)!.translate('add_note'),
         ),
         maxLines: 3,
       ),
@@ -466,13 +500,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildImagesSection() {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ListTile(
-            leading: Icon(Icons.photo_library),
-            title: Text('Photos / Reçus'),
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: Text(l10n.translate('photos_receipts')),
           ),
           if (_selectedImages.isNotEmpty)
             SizedBox(
@@ -521,7 +556,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                   child: OutlinedButton.icon(
                     onPressed: () => _pickImage(ImageSource.camera),
                     icon: const Icon(Icons.camera_alt),
-                    label: const Text('Appareil photo'),
+                    label: Text(l10n.translate('camera')),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -529,7 +564,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                   child: OutlinedButton.icon(
                     onPressed: () => _pickImage(ImageSource.gallery),
                     icon: const Icon(Icons.photo_library),
-                    label: const Text('Galerie'),
+                    label: Text(l10n.translate('gallery')),
                   ),
                 ),
               ],
@@ -551,15 +586,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildAdvancedOptions() {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ExpansionTile(
         leading: const Icon(Icons.settings),
-        title: const Text('Options avancées'),
+        title: Text(l10n.translate('advanced_options')),
         children: [
           if (_selectedType != TransactionType.transfer) ...[
             SwitchListTile(
-              title: const Text('Transaction récurrente'),
-              subtitle: const Text('Répéter cette transaction'),
+              title: Text(l10n.translate('recurring_transaction')),
+              subtitle: Text(l10n.translate('repeat_transaction')),
               value: _isRecurring,
               onChanged: (value) {
                 setState(() {
@@ -571,13 +607,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Fréquence'),
+                  decoration: InputDecoration(labelText: l10n.translate('frequency')),
                   value: _recurrenceFrequency,
-                  items: const [
-                    DropdownMenuItem(value: 'daily', child: Text('Quotidien')),
-                    DropdownMenuItem(value: 'weekly', child: Text('Hebdomadaire')),
-                    DropdownMenuItem(value: 'monthly', child: Text('Mensuel')),
-                    DropdownMenuItem(value: 'yearly', child: Text('Annuel')),
+                  items: [
+                    DropdownMenuItem(value: 'daily', child: Text(l10n.translate('daily'))),
+                    DropdownMenuItem(value: 'weekly', child: Text(l10n.translate('weekly'))),
+                    DropdownMenuItem(value: 'monthly', child: Text(l10n.translate('monthly'))),
+                    DropdownMenuItem(value: 'yearly', child: Text(l10n.translate('yearly'))),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -587,8 +623,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 ),
               ),
             SwitchListTile(
-              title: const Text('Paiement en plusieurs fois'),
-              subtitle: const Text('Installment'),
+              title: Text(l10n.translate('installment_payment')),
+              subtitle: Text(l10n.translate('split_amount_months')),
               value: _isInstallment,
               onChanged: (value) {
                 setState(() {
@@ -601,7 +637,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextFormField(
                   initialValue: _installmentCount.toString(),
-                  decoration: const InputDecoration(labelText: 'Nombre de versements'),
+                  decoration: InputDecoration(labelText: l10n.translate('installment_count')),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
                     _installmentCount = int.tryParse(value) ?? 1;
@@ -610,8 +646,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               ),
           ],
           SwitchListTile(
-            title: const Text('Marquer comme favori'),
-            subtitle: const Text('Réutiliser rapidement'),
+            title: Text(l10n.translate('bookmark')),
+            subtitle: Text(l10n.translate('reuse_quickly')),
             value: _isBookmark,
             onChanged: (value) {
               setState(() {
@@ -625,6 +661,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Widget _buildActionButtons() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
         SizedBox(
@@ -632,7 +669,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           child: ElevatedButton.icon(
             onPressed: _saveTransaction,
             icon: const Icon(Icons.save),
-            label: const Text('Enregistrer'),
+            label: Text(l10n.save),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
@@ -644,7 +681,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
           child: OutlinedButton.icon(
             onPressed: _saveAndContinue,
             icon: const Icon(Icons.add),
-            label: const Text('Enregistrer et continuer'),
+            label: Text(l10n.translate('save_and_continue')),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
@@ -674,13 +711,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         _selectedCategoryId = null;
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction enregistrée')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.translate('transaction_saved'))),
         );
       }
     }
   }
 
   Future<void> _insertTransaction() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final amount = double.parse(_amountController.text);
       final transactionsDao = ref.read(transactionsDaoProvider);
@@ -713,7 +751,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Transaction modifiée avec succès')),
+            SnackBar(content: Text(l10n.translate('transaction_updated'))),
           );
           context.pop();
         }
@@ -770,13 +808,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction enregistrée avec succès')),
+          SnackBar(content: Text(l10n.translate('transaction_saved_success'))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.translate('error')}: $e')),
         );
       }
     }
@@ -829,5 +867,355 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     }
 
     return savedPaths;
+  }
+
+  void _showAddCategoryDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final nameController = TextEditingController();
+    String selectedIcon = 'category';
+    String selectedColor = '#6B7280';
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(l10n.addCategory),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: l10n.translate('category_name'),
+                    hintText: l10n.translate('category_name_example'),
+                  ),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedIcon,
+                  decoration: InputDecoration(labelText: l10n.translate('icon')),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'home',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.home, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('housing')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'shopping_cart',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.shopping_cart, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('groceries')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'restaurant',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.restaurant, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('restaurant')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'directions_car',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.directions_car, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('transport')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'sports_esports',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.sports_esports, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('leisure')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'local_hospital',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.local_hospital, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('health')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'school',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.school, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('education')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'work',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.work, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('salary')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'laptop',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.laptop, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('freelance')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'trending_up',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.trending_up, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('investment')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'attach_money',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.attach_money, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('other_income')),
+                        ],
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'category',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.category, size: 20),
+                          const SizedBox(width: 8),
+                          Text(l10n.translate('other')),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedIcon = value ?? 'category';
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  Navigator.pop(context, true);
+                }
+              },
+              child: const Text('Ajouter'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true) {
+      final name = nameController.text.trim();
+      if (name.isNotEmpty) {
+        try {
+          final categoryType = _selectedType == TransactionType.income ? 'income' : 'expense';
+          final newCategoryId = await ref.read(categoriesDaoProvider).insertCategory(
+                CategoriesCompanion(
+                  name: drift.Value(name),
+                  type: drift.Value(categoryType),
+                  icon: drift.Value(selectedIcon),
+                  color: drift.Value(selectedColor),
+                  isDefault: drift.Value(false),
+                ),
+              );
+          
+          setState(() {
+            _selectedCategoryId = newCategoryId;
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.translate('category_added'))),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${AppLocalizations.of(context)!.translate('error')}: $e')),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  void _showAddAccountDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final nameController = TextEditingController();
+    final balanceController = TextEditingController();
+    String selectedType = 'bank';
+    String selectedCategory = 'asset';
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(l10n.addAccount),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: l10n.translate('account_name'),
+                    hintText: l10n.translate('account_name_example'),
+                  ),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: InputDecoration(labelText: l10n.translate('account_category')),
+                  items: [
+                    DropdownMenuItem(value: 'asset', child: Text(l10n.translate('asset'))),
+                    DropdownMenuItem(value: 'liability', child: Text(l10n.translate('liability'))),
+                    DropdownMenuItem(value: 'custom', child: Text(l10n.translate('custom'))),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCategory = value ?? 'asset';
+                      if (selectedCategory == 'liability') {
+                        selectedType = 'credit';
+                      } else if (selectedCategory == 'asset') {
+                        selectedType = 'bank';
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedType,
+                  decoration: InputDecoration(labelText: l10n.translate('account_type')),
+                  items: _getAccountTypeOptions(selectedCategory, l10n),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedType = value ?? 'bank';
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: balanceController,
+                  decoration: InputDecoration(
+                    labelText: l10n.translate('initial_balance'),
+                    hintText: '0.00',
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                if (name.isNotEmpty) {
+                  Navigator.pop(context, true);
+                }
+              },
+              child: const Text('Ajouter'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true) {
+      final name = nameController.text.trim();
+      final balance = double.tryParse(balanceController.text) ?? 0.0;
+      if (name.isNotEmpty) {
+        try {
+          await ref.read(accountsDaoProvider).insertAccount(
+                AccountsCompanion(
+                  name: drift.Value(name),
+                  type: drift.Value(selectedType),
+                  accountCategory: drift.Value(selectedCategory),
+                  initialBalance: drift.Value(balance),
+                ),
+              );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.translate('account_added'))),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${AppLocalizations.of(context)!.translate('error')}: $e')),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  List<DropdownMenuItem<String>> _getAccountTypeOptions(String category, AppLocalizations l10n) {
+    if (category == 'liability') {
+      return [
+        DropdownMenuItem(value: 'credit', child: Text(l10n.translate('credit_card'))),
+        DropdownMenuItem(value: 'loan', child: Text(l10n.translate('loan'))),
+      ];
+    } else if (category == 'asset') {
+      return [
+        DropdownMenuItem(value: 'bank', child: Text(l10n.translate('bank'))),
+        DropdownMenuItem(value: 'cash', child: Text(l10n.translate('cash'))),
+        DropdownMenuItem(value: 'wallet', child: Text(l10n.translate('wallet'))),
+        DropdownMenuItem(value: 'savings', child: Text(l10n.translate('savings'))),
+        DropdownMenuItem(value: 'investment', child: Text(l10n.translate('investment'))),
+        DropdownMenuItem(value: 'mobile_money', child: Text(l10n.translate('mobile_money'))),
+      ];
+    } else {
+      return [
+        DropdownMenuItem(value: 'custom', child: Text(l10n.translate('custom'))),
+      ];
+    }
   }
 }

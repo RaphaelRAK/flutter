@@ -93,7 +93,7 @@ class FeaturesScreen extends StatelessWidget {
           _buildFeatureCard(
             context,
             icon: Icons.bookmark,
-            title: 'Signets (bookmark)',
+            title: 'Signets',
             description:
                 'Enregistrez vos dépenses fréquentes pour les réutiliser rapidement.',
           ),

@@ -17,6 +17,9 @@ import '../features/transactions/presentation/screens/recurring_transactions_scr
 import '../features/transactions/presentation/screens/add_recurring_transaction_screen.dart';
 import '../features/settings/presentation/screens/reminders_screen.dart';
 import '../features/settings/presentation/screens/add_reminder_screen.dart';
+import '../features/settings/presentation/screens/transaction_filters_screen.dart';
+import '../features/settings/presentation/screens/lock_screen.dart';
+import '../features/settings/presentation/screens/lock_setup_screen.dart';
 import '../core/utils/preferences_helper.dart';
 import '../infrastructure/db/drift_database.dart';
 
@@ -124,6 +127,21 @@ final appRouterProvider = FutureProvider<GoRouter>((ref) async {
           final reminder = state.extra as Reminder?;
           return AddReminderScreen(reminderToEdit: reminder);
         },
+      ),
+      GoRoute(
+        path: '/transaction-filters',
+        name: 'transaction-filters',
+        builder: (context, state) => const TransactionFiltersScreen(),
+      ),
+      GoRoute(
+        path: '/lock',
+        name: 'lock',
+        builder: (context, state) => const LockScreen(),
+      ),
+      GoRoute(
+        path: '/lock-setup',
+        name: 'lock-setup',
+        builder: (context, state) => const LockSetupScreen(),
       ),
     ],
   );
