@@ -155,24 +155,63 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   Widget _buildDateField() {
     return Card(
-      child: ListTile(
-        leading: const Icon(Icons.calendar_today),
-        title: const Text('Date'),
-        subtitle: Text(DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(_selectedDate)),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () async {
-          final date = await showDatePicker(
-            context: context,
-            initialDate: _selectedDate,
-            firstDate: DateTime(2020),
-            lastDate: DateTime.now().add(const Duration(days: 365)),
-          );
-          if (date != null) {
-            setState(() {
-              _selectedDate = date;
-            });
-          }
-        },
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.calendar_today),
+            title: const Text('Date'),
+            subtitle: Text(DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(_selectedDate)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final date = await showDatePicker(
+                context: context,
+                initialDate: _selectedDate,
+                firstDate: DateTime(2020),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
+              );
+              if (date != null) {
+                setState(() {
+                  // Préserver l'heure actuelle lors de la sélection de date
+                  _selectedDate = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    _selectedDate.hour,
+                    _selectedDate.minute,
+                  );
+                });
+              }
+            },
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.access_time),
+            title: const Text('Heure'),
+            subtitle: Text(DateFormat('HH:mm', 'fr_FR').format(_selectedDate)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final time = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay(
+                  hour: _selectedDate.hour,
+                  minute: _selectedDate.minute,
+                ),
+              );
+              if (time != null) {
+                setState(() {
+                  // Préserver la date lors de la sélection de l'heure
+                  _selectedDate = DateTime(
+                    _selectedDate.year,
+                    _selectedDate.month,
+                    _selectedDate.day,
+                    time.hour,
+                    time.minute,
+                  );
+                });
+              }
+            },
+          ),
+        ],
       ),
     );
   }
