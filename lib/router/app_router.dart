@@ -15,6 +15,8 @@ import '../features/screenshots/presentation/screens/screenshots_screen.dart';
 import '../features/help/presentation/screens/help_center_screen.dart';
 import '../features/transactions/presentation/screens/recurring_transactions_screen.dart';
 import '../features/transactions/presentation/screens/add_recurring_transaction_screen.dart';
+import '../features/settings/presentation/screens/reminders_screen.dart';
+import '../features/settings/presentation/screens/add_reminder_screen.dart';
 import '../core/utils/preferences_helper.dart';
 import '../infrastructure/db/drift_database.dart';
 
@@ -108,6 +110,19 @@ final appRouterProvider = FutureProvider<GoRouter>((ref) async {
         builder: (context, state) {
           final rule = state.extra as RecurringRule?;
           return AddRecurringTransactionScreen(ruleToEdit: rule);
+        },
+      ),
+      GoRoute(
+        path: '/reminders',
+        name: 'reminders',
+        builder: (context, state) => const RemindersScreen(),
+      ),
+      GoRoute(
+        path: '/add-reminder',
+        name: 'add-reminder',
+        builder: (context, state) {
+          final reminder = state.extra as Reminder?;
+          return AddReminderScreen(reminderToEdit: reminder);
         },
       ),
     ],

@@ -199,9 +199,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: ListTile(
         leading: const Icon(Icons.notifications),
         title: const Text('Rappels (alarme)'),
-        subtitle: Text(settings.dailyReminderTime ?? 'Non configuré'),
+        subtitle: const Text('Gérer les rappels de dépenses'),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => _showReminderTimeDialog(context, settings),
+        onTap: () => context.push('/reminders'),
       ),
     );
   }

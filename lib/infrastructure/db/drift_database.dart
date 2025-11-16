@@ -110,6 +110,18 @@ class CustomCurrencies extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+// Table Reminders
+class Reminders extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text().withDefault(const Constant('Rappel de dépenses'))(); // Titre de la notification
+  TextColumn get message => text().withDefault(const Constant('N\'oubliez pas de renseigner vos dépenses'))(); // Message de la notification
+  IntColumn get hour => integer()(); // Heure (0-23)
+  IntColumn get minute => integer()(); // Minute (0-59)
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))(); // Actif ou non
+  IntColumn get order => integer().withDefault(const Constant(0))(); // Ordre d'affichage
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // Table Settings
 class Settings extends Table {
   IntColumn get id => integer().withDefault(const Constant(1))();
@@ -137,12 +149,13 @@ class Settings extends Table {
   Goals,
   Settings,
   CustomCurrencies,
+  Reminders,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -190,6 +203,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 6) {
           // Migration vers la version 6 : Ajouter le champ decimalPlaces
           await _addColumnIfNotExists(m, settings, settings.decimalPlaces);
+        }
+        if (from < 7) {
+          // Migration vers la version 7 : Créer la table Reminders
+          await m.createTable(reminders);
         }
       },
     );
@@ -280,6 +297,18 @@ class AppDatabase extends _$AppDatabase {
         isPremium: Value(false),
         biometricLockEnabled: Value(false),
         decimalPlaces: Value(2),
+      ),
+    );
+
+    // Créer un rappel par défaut à 21h
+    await into(reminders).insert(
+      const RemindersCompanion(
+        title: Value('Rappel de dépenses'),
+        message: Value('N\'oubliez pas de renseigner vos dépenses'),
+        hour: Value(21),
+        minute: Value(0),
+        isActive: Value(true),
+        order: Value(0),
       ),
     );
   }

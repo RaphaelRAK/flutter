@@ -6,6 +6,7 @@ import 'daos/transactions_dao.dart';
 import 'daos/settings_dao.dart';
 import 'daos/custom_currencies_dao.dart';
 import 'daos/recurring_rules_dao.dart';
+import 'daos/reminders_dao.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase();
@@ -33,6 +34,10 @@ final customCurrenciesDaoProvider = Provider<CustomCurrenciesDao>((ref) {
 
 final recurringRulesDaoProvider = Provider<RecurringRulesDao>((ref) {
   return RecurringRulesDao(ref.watch(databaseProvider));
+});
+
+final remindersDaoProvider = Provider<RemindersDao>((ref) {
+  return RemindersDao(ref.watch(databaseProvider));
 });
 
 // Stream providers pour les données réactives
@@ -86,5 +91,10 @@ final customCurrenciesStreamProvider = StreamProvider((ref) {
 // Provider pour les règles récurrentes
 final recurringRulesStreamProvider = StreamProvider((ref) {
   return ref.watch(recurringRulesDaoProvider).watchAllRecurringRules();
+});
+
+// Provider pour les rappels
+final remindersStreamProvider = StreamProvider((ref) {
+  return ref.watch(remindersDaoProvider).watchAllReminders();
 });
 
