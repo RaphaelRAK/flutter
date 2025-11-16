@@ -62,7 +62,13 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<bool> updateTransaction(TransactionsCompanion transaction) {
-    return update(transactions).replace(transaction);
+    // Si seulement certains champs sont fournis, utiliser write() au lieu de replace()
+    if (transaction.id.present) {
+      return (update(transactions)..where((t) => t.id.equals(transaction.id.value)))
+          .write(transaction)
+          .then((count) => count > 0);
+    }
+    return Future.value(false);
   }
 
   Future<int> deleteTransaction(int id) {

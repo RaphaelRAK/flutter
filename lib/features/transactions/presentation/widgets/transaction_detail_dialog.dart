@@ -1,9 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../infrastructure/db/drift_database.dart';
+import '../../../../infrastructure/db/database_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 
-class TransactionDetailDialog extends StatelessWidget {
+class TransactionDetailDialog extends ConsumerWidget {
   final Transaction transaction;
 
   const TransactionDetailDialog({
@@ -12,7 +16,7 @@ class TransactionDetailDialog extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isExpense = transaction.type == 'expense';
     final isIncome = transaction.type == 'income';
 
@@ -37,12 +41,17 @@ class TransactionDetailDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -133,6 +142,10 @@ class TransactionDetailDialog extends StatelessWidget {
               transaction.categoryId.toString(),
               Icons.category,
             ),
+            const SizedBox(height: 12),
+            // Images
+            if (transaction.images != null && transaction.images!.isNotEmpty)
+              _buildImagesSection(context, transaction.images!),
             const SizedBox(height: 24),
             // Actions
             Row(
@@ -140,8 +153,9 @@ class TransactionDetailDialog extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // TODO: Implémenter l'édition
                       Navigator.of(context).pop();
+                      // Naviguer vers l'écran d'édition
+                      context.push('/edit-transaction', extra: transaction);
                     },
                     icon: const Icon(Icons.edit),
                     label: const Text('Modifier'),
@@ -150,9 +164,55 @@ class TransactionDetailDialog extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      // TODO: Implémenter la suppression
-                      Navigator.of(context).pop();
+                    onPressed: () async {
+                      // Demander confirmation
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Supprimer la transaction'),
+                          content: const Text(
+                            'Êtes-vous sûr de vouloir supprimer cette transaction ? Cette action est irréversible.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('Annuler'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.error,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Supprimer'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmed == true) {
+                        try {
+                          final transactionsDao = ref.read(transactionsDaoProvider);
+                          await transactionsDao.deleteTransaction(transaction.id);
+                          
+                          if (context.mounted) {
+                            Navigator.of(context).pop(); // Fermer le dialogue de détails
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Transaction supprimée avec succès'),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erreur lors de la suppression: $e'),
+                              ),
+                            );
+                          }
+                        }
+                      }
                     },
                     icon: const Icon(Icons.delete),
                     label: const Text('Supprimer'),
@@ -164,7 +224,9 @@ class TransactionDetailDialog extends StatelessWidget {
                 ),
               ],
             ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -195,6 +257,90 @@ class TransactionDetailDialog extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagesSection(BuildContext context, String imagesString) {
+    final imagePaths = imagesString.split(',').where((path) => path.trim().isNotEmpty).toList();
+    
+    if (imagePaths.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.photo_library, size: 20, color: AppColors.darkTextSecondary),
+            const SizedBox(width: 12),
+            Text(
+              'Photos / Reçus',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.darkTextSecondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: imagePaths.length,
+            itemBuilder: (context, index) {
+              final imagePath = imagePaths[index].trim();
+              final file = File(imagePath);
+              
+              return GestureDetector(
+                onTap: () {
+                  // Afficher l'image en plein écran
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      backgroundColor: Colors.transparent,
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: InteractiveViewer(
+                              child: Image.file(
+                                file,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.darkTextSecondary.withOpacity(0.2)),
+                    image: DecorationImage(
+                      image: FileImage(file),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],

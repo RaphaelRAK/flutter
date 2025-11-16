@@ -6,8 +6,10 @@ import '../widgets/transactions_calendar_view.dart';
 import '../widgets/transactions_weekly_view.dart';
 import '../widgets/transactions_monthly_view.dart';
 import '../widgets/transactions_total_view.dart';
+import '../widgets/transactions_list_view.dart';
 
 enum TransactionsViewType {
+  list,
   calendar,
   weekly,
   monthly,
@@ -15,7 +17,7 @@ enum TransactionsViewType {
 }
 
 final transactionsViewTypeProvider =
-    StateProvider<TransactionsViewType>((ref) => TransactionsViewType.calendar);
+    StateProvider<TransactionsViewType>((ref) => TransactionsViewType.list);
 
 class TransactionsListScreen extends ConsumerStatefulWidget {
   const TransactionsListScreen({super.key});
@@ -33,7 +35,7 @@ class _TransactionsListScreenState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         ref.read(transactionsViewTypeProvider.notifier).state =
@@ -78,6 +80,10 @@ class _TransactionsListScreenState
           },
           tabs: const [
             Tab(
+              icon: Icon(Icons.list),
+              text: 'Liste',
+            ),
+            Tab(
               icon: Icon(Icons.calendar_today),
               text: 'Calendrier',
             ),
@@ -99,6 +105,7 @@ class _TransactionsListScreenState
       body: TabBarView(
         controller: _tabController,
         children: const [
+          TransactionsListView(),
           TransactionsCalendarView(),
           TransactionsWeeklyView(),
           TransactionsMonthlyView(),

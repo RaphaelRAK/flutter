@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../../../../infrastructure/db/database_provider.dart';
 import '../../../../infrastructure/db/drift_database.dart';
 import '../../../../domain/models/transaction_type.dart';
@@ -11,7 +13,9 @@ import '../../../accounts/presentation/screens/accounts_screen.dart';
 import 'dart:io';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
-  const AddTransactionScreen({super.key});
+  final Transaction? transactionToEdit;
+  
+  const AddTransactionScreen({super.key, this.transactionToEdit});
 
   @override
   ConsumerState<AddTransactionScreen> createState() =>
@@ -40,11 +44,41 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   @override
   void initState() {
     super.initState();
+    
+    // Si on est en mode édition, pré-remplir les champs
+    if (widget.transactionToEdit != null) {
+      final transaction = widget.transactionToEdit!;
+      _selectedDate = transaction.date;
+      _selectedAccountId = transaction.accountId;
+      _selectedCategoryId = transaction.categoryId;
+      _amountController.text = transaction.amount.toString();
+      _noteController.text = transaction.description ?? '';
+      
+      // Déterminer le type de transaction
+      if (transaction.type == 'expense') {
+        _selectedType = TransactionType.expense;
+      } else if (transaction.type == 'income') {
+        _selectedType = TransactionType.income;
+      } else {
+        _selectedType = TransactionType.transfer;
+      }
+      
+      // Charger les images existantes si présentes
+      // Note: On ne peut pas charger les XFile depuis les chemins existants directement
+      // Les images seront affichées dans le dialogue de détails, mais pour les modifier
+      // il faudra les re-sélectionner. On stocke juste les chemins pour référence.
+      // Les images existantes seront préservées si aucune nouvelle image n'est ajoutée.
+    }
+    
     _tabController = TabController(length: 3, vsync: this);
+    // Positionner le tab sur le bon type
+    _tabController.index = _selectedType.index;
     _tabController.addListener(() {
       setState(() {
         _selectedType = TransactionType.values[_tabController.index];
-        _selectedCategoryId = null; // Réinitialiser la catégorie
+        if (widget.transactionToEdit == null) {
+          _selectedCategoryId = null; // Réinitialiser la catégorie seulement en mode création
+        }
       });
     });
   }
@@ -68,7 +102,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nouvelle transaction'),
+        title: Text(widget.transactionToEdit == null ? 'Nouvelle transaction' : 'Modifier la transaction'),
         bottom: TabBar(
           controller: _tabController,
           tabs: TransactionType.values.map((type) {
@@ -651,8 +685,44 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       final amount = double.parse(_amountController.text);
       final transactionsDao = ref.read(transactionsDaoProvider);
 
+      // Sauvegarder les images d'abord
+      String? imagesPaths;
+      if (_selectedImages.isNotEmpty) {
+        final savedPaths = await _saveImages();
+        imagesPaths = savedPaths.join(',');
+      } else if (widget.transactionToEdit != null) {
+        // En mode édition, si aucune nouvelle image n'est ajoutée, conserver les images existantes
+        imagesPaths = widget.transactionToEdit!.images;
+      }
+
+      // Si on est en mode édition, mettre à jour la transaction existante
+      if (widget.transactionToEdit != null) {
+        final transaction = widget.transactionToEdit!;
+        await transactionsDao.updateTransaction(
+          TransactionsCompanion(
+            id: drift.Value(transaction.id),
+            accountId: drift.Value(_selectedAccountId ?? transaction.accountId),
+            categoryId: drift.Value(_selectedCategoryId ?? transaction.categoryId),
+            type: drift.Value(_selectedType.value),
+            amount: drift.Value(amount),
+            date: drift.Value(_selectedDate),
+            description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
+            images: drift.Value(imagesPaths),
+          ),
+        );
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Transaction modifiée avec succès')),
+          );
+          context.pop();
+        }
+        return;
+      }
+
+      // Créer les transactions avec les images incluses directement
       if (_selectedType == TransactionType.transfer) {
-        // Pour les transferts, créer deux transactions
+        // Pour les transferts, créer deux transactions avec images
         if (_selectedAccountId != null && _selectedToAccountId != null) {
           // Transaction sortante
           await transactionsDao.insertTransaction(
@@ -663,6 +733,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               amount: drift.Value(amount),
               date: drift.Value(_selectedDate),
               description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
+              images: drift.Value(imagesPaths),
             ),
           );
           // Transaction entrante
@@ -674,6 +745,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               amount: drift.Value(amount),
               date: drift.Value(_selectedDate),
               description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
+              images: drift.Value(imagesPaths),
             ),
           );
         }
@@ -687,12 +759,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               amount: drift.Value(amount),
               date: drift.Value(_selectedDate),
               description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
+              images: drift.Value(imagesPaths),
             ),
           );
         }
       }
 
-      // TODO: Gérer les images (sauvegarder dans le stockage local)
       // TODO: Gérer la récurrence (créer RecurringRule)
       // TODO: Gérer les installments
 
@@ -734,5 +806,28 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       default:
         return Icons.account_balance_wallet;
     }
+  }
+
+  /// Sauvegarde les images sélectionnées dans le répertoire de l'application
+  Future<List<String>> _saveImages() async {
+    final List<String> savedPaths = [];
+    final appDir = await getApplicationDocumentsDirectory();
+    final imagesDir = Directory(path.join(appDir.path, 'transaction_images'));
+    
+    // Créer le répertoire s'il n'existe pas
+    if (!await imagesDir.exists()) {
+      await imagesDir.create(recursive: true);
+    }
+
+    for (final xFile in _selectedImages) {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.basename(xFile.path)}';
+      final savedFile = File(path.join(imagesDir.path, fileName));
+      
+      // Copier le fichier
+      await File(xFile.path).copy(savedFile.path);
+      savedPaths.add(savedFile.path);
+    }
+
+    return savedPaths;
   }
 }

@@ -50,6 +50,7 @@ class Transactions extends Table {
   RealColumn get amount => real()();
   DateTimeColumn get date => dateTime()();
   TextColumn get description => text().nullable()();
+  TextColumn get images => text().nullable()(); // Chemins des images séparés par des virgules
   BoolColumn get isRecurringInstance =>
       boolean().withDefault(const Constant(false))();
   IntColumn get recurrenceId => integer().nullable()();
@@ -128,7 +129,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -159,6 +160,10 @@ class AppDatabase extends _$AppDatabase {
           // accountCategory aura la valeur 'asset' par défaut pour tous les comptes existants
           // Les comptes de type 'credit' et 'loan' seront mis à jour via updateAccountCategoriesAfterMigration()
           // appelée dans main.dart après l'initialisation
+        }
+        if (from < 3) {
+          // Migration vers la version 3 : Ajouter le champ images à Transactions
+          await _addColumnIfNotExists(m, transactions, transactions.images);
         }
       },
     );

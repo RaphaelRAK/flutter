@@ -14,6 +14,7 @@ import '../features/daily/presentation/screens/daily_screen.dart';
 import '../features/screenshots/presentation/screens/screenshots_screen.dart';
 import '../features/help/presentation/screens/help_center_screen.dart';
 import '../core/utils/preferences_helper.dart';
+import '../infrastructure/db/drift_database.dart';
 
 final appRouterProvider = FutureProvider<GoRouter>((ref) async {
   final isFirstLaunch = await PreferencesHelper.isFirstLaunch();
@@ -45,6 +46,14 @@ final appRouterProvider = FutureProvider<GoRouter>((ref) async {
         path: '/add-transaction',
         name: 'add-transaction',
         builder: (context, state) => const AddTransactionScreen(),
+      ),
+      GoRoute(
+        path: '/edit-transaction',
+        name: 'edit-transaction',
+        builder: (context, state) {
+          final transaction = state.extra as Transaction?;
+          return AddTransactionScreen(transactionToEdit: transaction);
+        },
       ),
       GoRoute(
         path: '/settings',
