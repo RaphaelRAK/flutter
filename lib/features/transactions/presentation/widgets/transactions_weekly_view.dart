@@ -43,6 +43,18 @@ class _TransactionsWeeklyViewState
 
     return transactionsAsync.when(
       data: (allTransactions) {
+        // Normaliser le début et la fin de la semaine
+        final weekStartNormalized = DateTime(
+          _selectedWeekStart.year,
+          _selectedWeekStart.month,
+          _selectedWeekStart.day,
+        );
+        final weekEndNormalized = DateTime(
+          _selectedWeekEnd.year,
+          _selectedWeekEnd.month,
+          _selectedWeekEnd.day,
+        );
+        
         // Filtrer les transactions de la semaine sélectionnée
         final weekTransactions = allTransactions.where((t) {
           final transactionDate = DateTime(
@@ -51,10 +63,10 @@ class _TransactionsWeeklyViewState
             t.date.day,
           );
           return transactionDate.isAfter(
-                _selectedWeekStart.subtract(const Duration(days: 1)),
+                weekStartNormalized.subtract(const Duration(seconds: 1)),
               ) &&
               transactionDate.isBefore(
-                _selectedWeekEnd.add(const Duration(days: 1)),
+                weekEndNormalized.add(const Duration(days: 1)),
               );
         }).toList();
 
@@ -80,6 +92,16 @@ class _TransactionsWeeklyViewState
           );
           transactionsByDay.putIfAbsent(date, () => []).add(transaction);
         }
+        
+        debugPrint('📅 Semaine: ${weekStartNormalized} - ${weekEndNormalized}');
+        debugPrint('📊 Transactions trouvées: ${weekTransactions.length}');
+        debugPrint('📋 Transactions groupées par jour: ${transactionsByDay.length} jours');
+        if (transactionsByDay.isNotEmpty) {
+          debugPrint('📋 Jours avec transactions:');
+          for (final entry in transactionsByDay.entries) {
+            debugPrint('  - ${entry.key}: ${entry.value.length} transaction(s)');
+          }
+        }
 
         return Column(
           children: [
@@ -95,42 +117,52 @@ class _TransactionsWeeklyViewState
                       icon: const Icon(Icons.chevron_left),
                       onPressed: _previousWeek,
                     ),
-                    Column(
-                      children: [
-                        Text(
-                          '${DateFormat('d MMM', 'fr_FR').format(_selectedWeekStart)} - ${DateFormat('d MMM yyyy', 'fr_FR').format(_selectedWeekEnd)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${DateFormat('d MMM', 'fr_FR').format(_selectedWeekStart)} - ${DateFormat('d MMM yyyy', 'fr_FR').format(_selectedWeekEnd)}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildSummaryChip(
-                              'Revenus',
-                              totalIncome,
-                              AppColors.income,
-                              Icons.trending_up,
-                            ),
-                            const SizedBox(width: 12),
-                            _buildSummaryChip(
-                              'Dépenses',
-                              totalExpense,
-                              AppColors.expense,
-                              Icons.trending_down,
-                            ),
-                            const SizedBox(width: 12),
-                            _buildSummaryChip(
-                              'Solde',
-                              balance,
-                              balance >= 0 ? AppColors.income : AppColors.expense,
-                              Icons.account_balance_wallet,
-                            ),
-                          ],
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: _buildSummaryChip(
+                                  'Revenus',
+                                  totalIncome,
+                                  AppColors.income,
+                                  Icons.trending_up,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: _buildSummaryChip(
+                                  'Dépenses',
+                                  totalExpense,
+                                  AppColors.expense,
+                                  Icons.trending_down,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: _buildSummaryChip(
+                                  'Solde',
+                                  balance,
+                                  balance >= 0 ? AppColors.income : AppColors.expense,
+                                  Icons.account_balance_wallet,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.chevron_right),
@@ -146,8 +178,26 @@ class _TransactionsWeeklyViewState
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: 7,
                 itemBuilder: (context, index) {
-                  final day = _selectedWeekStart.add(Duration(days: index));
+                  // Normaliser le jour pour la recherche dans transactionsByDay
+                  final day = DateTime(
+                    _selectedWeekStart.year,
+                    _selectedWeekStart.month,
+                    _selectedWeekStart.day,
+                  ).add(Duration(days: index));
                   final dayTransactions = transactionsByDay[day] ?? [];
+                  
+                  if (index < 2) {
+                    debugPrint('🔍 Jour [$index]: $day');
+                    debugPrint('  - Transactions trouvées: ${dayTransactions.length}');
+                    if (transactionsByDay.containsKey(day)) {
+                      debugPrint('  - ✅ Clé trouvée dans le map');
+                    } else {
+                      debugPrint('  - ❌ Clé NON trouvée dans le map');
+                      if (transactionsByDay.isNotEmpty) {
+                        debugPrint('  - Clés disponibles: ${transactionsByDay.keys.take(3).toList()}');
+                      }
+                    }
+                  }
                   
                   return _buildDaySection(day, dayTransactions);
                 },
@@ -165,37 +215,37 @@ class _TransactionsWeeklyViewState
 
   Widget _buildSummaryChip(String label, double amount, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppColors.darkTextSecondary,
-                ),
-              ),
-              Text(
-                NumberFormat.currency(symbol: '€', decimalDigits: 0).format(amount.abs()),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-            ],
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: AppColors.darkTextSecondary,
+            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            NumberFormat.currency(symbol: '€', decimalDigits: 0).format(amount.abs()),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),
