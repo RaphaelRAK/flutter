@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../core/localization/app_localizations.dart';
 import '../widgets/transactions_calendar_view.dart';
 import '../widgets/transactions_weekly_view.dart';
 import '../widgets/transactions_monthly_view.dart';
@@ -65,22 +66,24 @@ class _TransactionsListScreenState
     final filters = ref.watch(transactionFiltersProvider);
     final hasActiveFilters = filters != null && filters.hasFilters;
 
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Transactions'),
+        title: Text(l10n.transactions),
         actions: [
           if (hasActiveFilters)
             IconButton(
               icon: const Icon(Icons.filter_alt),
               color: Colors.blue,
-              tooltip: 'Filtres actifs',
+              tooltip: l10n.translate('active_filters'),
               onPressed: () {
                 context.push('/transaction-filters');
               },
             ),
           IconButton(
             icon: const Icon(Icons.filter_list),
-            tooltip: 'Filtrage et recherche',
+            tooltip: l10n.translate('filtering_search'),
             onPressed: () {
               context.push('/transaction-filters');
             },
@@ -92,26 +95,26 @@ class _TransactionsListScreenState
             ref.read(transactionsViewTypeProvider.notifier).state =
                 TransactionsViewType.values[index];
           },
-          tabs: const [
+          tabs: [
             Tab(
-              icon: Icon(Icons.list),
-              text: 'Liste',
+              icon: const Icon(Icons.list),
+              text: l10n.translate('list'),
             ),
             Tab(
-              icon: Icon(Icons.calendar_today),
-              text: 'Calendrier',
+              icon: const Icon(Icons.calendar_today),
+              text: l10n.calendar,
             ),
             Tab(
-              icon: Icon(Icons.view_week),
-              text: 'Semaine',
+              icon: const Icon(Icons.view_week),
+              text: l10n.translate('week'),
             ),
             Tab(
-              icon: Icon(Icons.calendar_month),
-              text: 'Mois',
+              icon: const Icon(Icons.calendar_month),
+              text: l10n.translate('month'),
             ),
             Tab(
-              icon: Icon(Icons.summarize),
-              text: 'Total',
+              icon: const Icon(Icons.summarize),
+              text: l10n.translate('total'),
             ),
           ],
         ),

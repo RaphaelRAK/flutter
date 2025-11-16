@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../../core/localization/app_localizations.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -15,9 +16,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flut Budget'),
+        title: Text(l10n.translate('app_name')),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
@@ -44,6 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildHeroSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
@@ -66,7 +70,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            'La façon la plus simple de gérer vos finances personnelles',
+            l10n.translate('easiest_way_manage_finances'),
             style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -74,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Gérez vos finances personnelles en toute simplicité',
+            l10n.translate('manage_finances_simplicity'),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
@@ -86,13 +90,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildStatsSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Statistiques',
+            l10n.translate('statistics'),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
@@ -102,7 +107,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: _buildStatCard(
                   context,
                   icon: Icons.download,
-                  label: 'Téléchargements',
+                  label: l10n.translate('downloads'),
                   value: '10K+',
                 ),
               ),
@@ -111,7 +116,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: _buildStatCard(
                   context,
                   icon: Icons.star,
-                  label: 'Note',
+                  label: l10n.translate('rating'),
                   value: '4.8',
                 ),
               ),
@@ -124,7 +129,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: _buildStatCard(
                   context,
                   icon: Icons.people,
-                  label: 'Utilisateurs',
+                  label: l10n.translate('users'),
                   value: '5K+',
                 ),
               ),
@@ -133,7 +138,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: _buildStatCard(
                   context,
                   icon: Icons.thumb_up,
-                  label: 'Avis',
+                  label: l10n.translate('reviews'),
                   value: '500+',
                 ),
               ),
@@ -176,12 +181,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildDownloadSection(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
           Text(
-            'Téléchargez l\'application',
+            l10n.translate('download_app'),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 24),
@@ -191,14 +197,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildDownloadButton(
                 context,
                 icon: Icons.android,
-                label: 'Google Play',
+                label: l10n.translate('google_play'),
                 onPressed: () => _launchUrl('https://play.google.com/store'),
               ),
               const SizedBox(width: 16),
               _buildDownloadButton(
                 context,
                 icon: Icons.apple,
-                label: 'App Store',
+                label: l10n.translate('app_store'),
                 onPressed: () => _launchUrl('https://apps.apple.com'),
               ),
             ],
@@ -225,6 +231,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -233,7 +240,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.home),
-              title: const Text('Home'),
+              title: Text(l10n.home),
               onTap: () {
                 Navigator.pop(context);
                 context.go('/home');
@@ -241,7 +248,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.star),
-              title: const Text('Features'),
+              title: Text(l10n.translate('features')),
               onTap: () {
                 Navigator.pop(context);
                 context.push('/features');
@@ -249,7 +256,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Screenshots'),
+              title: Text(l10n.translate('screenshots')),
               onTap: () {
                 Navigator.pop(context);
                 context.push('/screenshots');
@@ -257,7 +264,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.help_center),
-              title: const Text('Help Center'),
+              title: Text(l10n.translate('help_center')),
               onTap: () {
                 Navigator.pop(context);
                 context.push('/help');

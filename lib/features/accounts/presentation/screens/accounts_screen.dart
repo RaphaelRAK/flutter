@@ -7,6 +7,7 @@ import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../../core/localization/app_localizations.dart';
 
 class AccountsScreen extends ConsumerStatefulWidget {
   const AccountsScreen({super.key});
@@ -26,9 +27,11 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final totalLiabilitiesAsync = ref.watch(totalLiabilitiesProvider);
     final netWorthAsync = ref.watch(netWorthProvider);
 
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Comptes'),
+        title: Text(l10n.accounts),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -67,34 +70,34 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   // Section Actifs (Assets)
                   _buildSectionHeader(
                     context,
-                    'Actifs',
+                    l10n.translate('assets'),
                     Icons.account_balance_wallet,
                     AppColors.accentPrimary,
                   ),
                   const SizedBox(height: 12),
                   assetAccountsAsync.when(
                     data: (accounts) => accounts.isEmpty
-                        ? _buildEmptySection(context, 'Aucun compte d\'actif')
+                        ? _buildEmptySection(context, l10n.translate('no_asset_account'))
                         : _buildAccountsList(context, accounts, currencyFormat, 'asset'),
                     loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, stack) => Text('Erreur: $error'),
+                    error: (error, stack) => Text('${l10n.error}: $error'),
                   ),
                   const SizedBox(height: 24),
 
                   // Section Passifs (Liabilities)
                   _buildSectionHeader(
                     context,
-                    'Passifs / Dettes',
+                    l10n.translate('liabilities_debts'),
                     Icons.receipt_long,
                     AppColors.error,
                   ),
                   const SizedBox(height: 12),
                   liabilityAccountsAsync.when(
                     data: (accounts) => accounts.isEmpty
-                        ? _buildEmptySection(context, 'Aucun passif')
+                        ? _buildEmptySection(context, l10n.translate('no_liability'))
                         : _buildAccountsList(context, accounts, currencyFormat, 'liability'),
           loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (error, stack) => Text('Erreur: $error'),
+                    error: (error, stack) => Text('${l10n.error}: $error'),
                   ),
                   const SizedBox(height: 24),
 
@@ -107,7 +110,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                         children: [
                           _buildSectionHeader(
                             context,
-                            'Comptes Personnalisés',
+                            l10n.translate('custom_accounts'),
                             Icons.category,
                             AppColors.accentSecondary,
                           ),
@@ -125,7 +128,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Erreur: $error')),
+        error: (error, stack) => Center(child: Text('${AppLocalizations.of(context)?.error ?? 'Erreur'}: $error')),
       ),
     );
   }
@@ -146,7 +149,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Bilan Financier',
+              AppLocalizations.of(context)!.translate('financial_balance'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -161,7 +164,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     Icon(Icons.trending_up, color: AppColors.accentPrimary, size: 20),
                     const SizedBox(width: 8),
                     Text(
-                      'Total Actifs',
+                      AppLocalizations.of(context)!.translate('total_assets'),
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ],
@@ -193,7 +196,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     Icon(Icons.trending_down, color: AppColors.error, size: 20),
                     const SizedBox(width: 8),
             Text(
-                      'Total Passifs',
+                      AppLocalizations.of(context)!.translate('total_liabilities'),
                       style: Theme.of(context).textTheme.bodyLarge,
             ),
                   ],
@@ -221,7 +224,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Patrimoine Net',
+                  AppLocalizations.of(context)!.translate('net_worth'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -293,8 +296,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     NumberFormat currencyFormat,
     String category,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (accounts.isEmpty) {
-      return _buildEmptySection(context, 'Aucun compte');
+      return _buildEmptySection(context, l10n.translate('no_account'));
     }
 
     return Column(
@@ -353,7 +357,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   ),
                 if (isLiability && account.creditLimit != null)
                   Text(
-                    'Limite: ${currencyFormat.format(account.creditLimit)}',
+                    '${AppLocalizations.of(context)!.translate('credit_limit')}: ${currencyFormat.format(account.creditLimit)}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[600],
                         ),
@@ -462,31 +466,33 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   }
 
   String _getAccountTypeLabel(String type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case 'bank':
-        return 'Banque';
+        return l10n.translate('bank');
       case 'cash':
-        return 'Espèces';
+        return l10n.translate('cash');
       case 'wallet':
-        return 'Portefeuille';
+        return l10n.translate('wallet');
       case 'credit':
-        return 'Carte de crédit';
+        return l10n.translate('credit_card');
       case 'loan':
-        return 'Prêt';
+        return l10n.translate('loan');
       case 'savings':
-        return 'Épargne';
+        return l10n.translate('savings');
       case 'investment':
-        return 'Investissement';
+        return l10n.translate('investment');
       case 'mobile_money':
-        return 'Mobile Money';
+        return l10n.translate('mobile_money');
       case 'custom':
-        return 'Personnalisé';
+        return l10n.translate('custom');
       default:
         return type;
     }
   }
 
   void _showAccountDetails(BuildContext context, Account account) {
+    final l10n = AppLocalizations.of(context)!;
     // TODO: Implémenter l'écran de détails avec graphique et transactions
     showDialog(
       context: context,
@@ -496,29 +502,48 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Type: ${_getAccountTypeLabel(account.type)}'),
+            Text('${l10n.translate('account_type_label')}: ${_getAccountTypeLabel(account.type)}'),
             const SizedBox(height: 8),
             FutureBuilder<double>(
               future: ref.read(accountsDaoProvider).getAccountBalance(account.id),
               builder: (context, snapshot) {
                 final balance = snapshot.data ?? account.initialBalance;
-                return Text('Solde: ${NumberFormat.currency(symbol: '€').format(balance)}');
+                final settingsAsync = ref.read(settingsStreamProvider);
+                return settingsAsync.when(
+                  data: (settings) {
+                    final currency = settings.currency;
+                    final currencyFormat = NumberFormat.currency(symbol: _getCurrencySymbol(currency));
+                    return Text('${l10n.translate('balance')}: ${currencyFormat.format(balance)}');
+                  },
+                  loading: () => Text('${l10n.translate('balance')}: ${NumberFormat.currency(symbol: '€').format(balance)}'),
+                  error: (_, __) => Text('${l10n.translate('balance')}: ${NumberFormat.currency(symbol: '€').format(balance)}'),
+                );
               },
             ),
             if (account.notes != null && account.notes!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text('Notes: ${account.notes}'),
+              Text('${l10n.translate('notes')}: ${account.notes}'),
             ],
             if (account.creditLimit != null) ...[
               const SizedBox(height: 8),
-              Text('Limite: ${NumberFormat.currency(symbol: '€').format(account.creditLimit)}'),
+              FutureBuilder(
+                future: ref.read(settingsStreamProvider.future),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final currency = snapshot.data!.currency;
+                    final currencyFormat = NumberFormat.currency(symbol: _getCurrencySymbol(currency));
+                    return Text('${l10n.translate('credit_limit')}: ${currencyFormat.format(account.creditLimit)}');
+                  }
+                  return Text('${l10n.translate('credit_limit')}: ${NumberFormat.currency(symbol: '€').format(account.creditLimit)}');
+                },
+              ),
             ],
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(l10n.close),
           ),
         ],
       ),
@@ -526,6 +551,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   }
 
   void _showAccountOptions(BuildContext context, Account account) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -534,7 +560,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit),
-              title: const Text('Modifier'),
+              title: Text(l10n.edit),
               onTap: () {
                 Navigator.pop(context);
         _showEditAccountDialog(context, account);
@@ -542,7 +568,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
             ListTile(
               leading: Icon(account.excludedFromTotal ? Icons.check_circle : Icons.circle_outlined),
-              title: const Text('Exclure du total'),
+              title: Text(l10n.translate('exclude_from_total')),
               onTap: () {
                 _toggleExcludeFromTotal(account);
                 Navigator.pop(context);
@@ -550,7 +576,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
             ListTile(
               leading: Icon(account.transferAsExpense ? Icons.check_circle : Icons.circle_outlined),
-              title: const Text('Traiter les transferts comme dépenses'),
+              title: Text(l10n.translate('treat_transfers_as_expenses')),
               onTap: () {
                 _toggleTransferAsExpense(account);
                 Navigator.pop(context);
@@ -558,7 +584,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
             ListTile(
               leading: Icon(account.archived ? Icons.visibility : Icons.visibility_off),
-              title: Text(account.archived ? 'Afficher' : 'Masquer'),
+              title: Text(account.archived ? l10n.translate('show') : l10n.translate('hide')),
               onTap: () {
                 if (account.archived) {
                   _unhideAccount(account);
@@ -570,7 +596,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.delete, color: AppColors.error),
-              title: const Text('Supprimer', style: TextStyle(color: AppColors.error)),
+              title: Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
               onTap: () {
                 Navigator.pop(context);
         _showDeleteConfirmation(context, account);
@@ -583,6 +609,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   }
 
   void _showAddAccountDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final nameController = TextEditingController();
     final balanceController = TextEditingController();
     final notesController = TextEditingController();
@@ -595,26 +622,26 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Ajouter un compte'),
+          title: Text(l10n.addAccount),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nom du compte',
-                    hintText: 'Ex: Compte courant',
+                  decoration: InputDecoration(
+                    labelText: l10n.translate('account_name'),
+                    hintText: l10n.translate('account_name_example'),
                   ),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
-                  decoration: const InputDecoration(labelText: 'Catégorie'),
-                  items: const [
-                    DropdownMenuItem(value: 'asset', child: Text('Actif')),
-                    DropdownMenuItem(value: 'liability', child: Text('Passif')),
-                    DropdownMenuItem(value: 'custom', child: Text('Personnalisé')),
+                  decoration: InputDecoration(labelText: l10n.translate('account_category')),
+                  items: [
+                    DropdownMenuItem(value: 'asset', child: Text(l10n.translate('asset'))),
+                    DropdownMenuItem(value: 'liability', child: Text(l10n.translate('liability'))),
+                    DropdownMenuItem(value: 'custom', child: Text(l10n.translate('custom'))),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -631,8 +658,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: selectedType,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  items: _getTypeOptions(selectedCategory),
+                  decoration: InputDecoration(labelText: l10n.translate('account_type')),
+                  items: _getTypeOptions(selectedCategory, l10n),
                   onChanged: (value) {
                     setState(() {
                       selectedType = value ?? 'bank';
@@ -642,8 +669,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: balanceController,
-                  decoration: const InputDecoration(
-                    labelText: 'Solde initial',
+                  decoration: InputDecoration(
+                    labelText: l10n.translate('initial_balance'),
                     hintText: '0.00',
                   ),
                   keyboardType: TextInputType.number,
@@ -651,17 +678,17 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: notesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes (optionnel)',
-                    hintText: 'Description du compte',
+                  decoration: InputDecoration(
+                    labelText: l10n.translate('notes_optional'),
+                    hintText: l10n.translate('account_description'),
                   ),
                   maxLines: 2,
                 ),
                 if (selectedType == 'credit') ...[
                   const SizedBox(height: 16),
                   TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Limite de crédit (optionnel)',
+                    decoration: InputDecoration(
+                      labelText: l10n.translate('credit_limit_optional'),
                       hintText: '0.00',
                     ),
                     keyboardType: TextInputType.number,
@@ -673,7 +700,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -692,7 +719,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Ajouter'),
+              child: Text(l10n.add),
             ),
           ],
         ),
@@ -700,29 +727,30 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     );
   }
 
-  List<DropdownMenuItem<String>> _getTypeOptions(String category) {
+  List<DropdownMenuItem<String>> _getTypeOptions(String category, AppLocalizations l10n) {
     if (category == 'liability') {
-      return const [
-        DropdownMenuItem(value: 'credit', child: Text('Carte de crédit')),
-        DropdownMenuItem(value: 'loan', child: Text('Prêt')),
+      return [
+        DropdownMenuItem(value: 'credit', child: Text(l10n.translate('credit_card'))),
+        DropdownMenuItem(value: 'loan', child: Text(l10n.translate('loan'))),
       ];
     } else if (category == 'asset') {
-      return const [
-        DropdownMenuItem(value: 'bank', child: Text('Banque')),
-        DropdownMenuItem(value: 'cash', child: Text('Espèces')),
-        DropdownMenuItem(value: 'wallet', child: Text('Portefeuille')),
-        DropdownMenuItem(value: 'savings', child: Text('Épargne')),
-        DropdownMenuItem(value: 'investment', child: Text('Investissement')),
-        DropdownMenuItem(value: 'mobile_money', child: Text('Mobile Money')),
+      return [
+        DropdownMenuItem(value: 'bank', child: Text(l10n.translate('bank'))),
+        DropdownMenuItem(value: 'cash', child: Text(l10n.translate('cash'))),
+        DropdownMenuItem(value: 'wallet', child: Text(l10n.translate('wallet'))),
+        DropdownMenuItem(value: 'savings', child: Text(l10n.translate('savings'))),
+        DropdownMenuItem(value: 'investment', child: Text(l10n.translate('investment'))),
+        DropdownMenuItem(value: 'mobile_money', child: Text(l10n.translate('mobile_money'))),
       ];
     } else {
-      return const [
-        DropdownMenuItem(value: 'custom', child: Text('Personnalisé')),
+      return [
+        DropdownMenuItem(value: 'custom', child: Text(l10n.translate('custom'))),
       ];
     }
   }
 
   void _showEditAccountDialog(BuildContext context, Account account) {
+    final l10n = AppLocalizations.of(context)!;
     final nameController = TextEditingController(text: account.name);
     final balanceController = TextEditingController(text: account.initialBalance.toString());
     final notesController = TextEditingController(text: account.notes ?? '');
@@ -735,23 +763,23 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Modifier le compte'),
+          title: Text(l10n.translate('edit_account')),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Nom du compte'),
+                  decoration: InputDecoration(labelText: l10n.translate('account_name')),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
-                  decoration: const InputDecoration(labelText: 'Catégorie'),
-                  items: const [
-                    DropdownMenuItem(value: 'asset', child: Text('Actif')),
-                    DropdownMenuItem(value: 'liability', child: Text('Passif')),
-                    DropdownMenuItem(value: 'custom', child: Text('Personnalisé')),
+                  decoration: InputDecoration(labelText: l10n.translate('account_category')),
+                  items: [
+                    DropdownMenuItem(value: 'asset', child: Text(l10n.translate('asset'))),
+                    DropdownMenuItem(value: 'liability', child: Text(l10n.translate('liability'))),
+                    DropdownMenuItem(value: 'custom', child: Text(l10n.translate('custom'))),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -762,8 +790,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: selectedType,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  items: _getTypeOptions(selectedCategory),
+                  decoration: InputDecoration(labelText: l10n.translate('account_type')),
+                  items: _getTypeOptions(selectedCategory, l10n),
                   onChanged: (value) {
                     setState(() {
                       selectedType = value ?? 'bank';
@@ -773,13 +801,13 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: balanceController,
-                  decoration: const InputDecoration(labelText: 'Solde initial'),
+                  decoration: InputDecoration(labelText: l10n.translate('initial_balance')),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: notesController,
-                  decoration: const InputDecoration(labelText: 'Notes'),
+                  decoration: InputDecoration(labelText: l10n.translate('notes')),
                   maxLines: 2,
                 ),
               ],
@@ -788,7 +816,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () {
@@ -808,7 +836,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Enregistrer'),
+              child: Text(l10n.save),
             ),
           ],
         ),
@@ -817,18 +845,19 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   }
 
   void _showDeleteConfirmation(BuildContext context, Account account) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer le compte'),
+        title: Text(l10n.translate('delete_account')),
         content: Text(
-          'Êtes-vous sûr de vouloir supprimer "${account.name}" ?\n\n'
-          'Cette action est irréversible.',
+          '${l10n.translate('delete_account_confirmation')} "${account.name}" ?\n\n'
+          '${l10n.translate('irreversible_action')}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -838,7 +867,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
-            child: const Text('Supprimer'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -867,14 +896,16 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
           );
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compte ajouté avec succès')),
+          SnackBar(content: Text(l10n.translate('account_added'))),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -904,14 +935,16 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
           );
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compte modifié avec succès')),
+          SnackBar(content: Text(l10n.translate('account_updated'))),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -926,14 +959,16 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
           );
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compte masqué')),
+          SnackBar(content: Text(l10n.translate('account_hidden'))),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -948,14 +983,16 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
           );
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compte affiché')),
+          SnackBar(content: Text(l10n.translate('account_shown'))),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -965,14 +1002,16 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     try {
       await ref.read(accountsDaoProvider).deleteAccount(account.id);
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compte supprimé')),
+          SnackBar(content: Text(l10n.translate('account_deleted'))),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -987,20 +1026,22 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
           );
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               account.excludedFromTotal
-                  ? 'Compte inclus dans le total'
-                  : 'Compte exclu du total',
+                  ? l10n.translate('include_in_total')
+                  : l10n.translate('excluded_from_total'),
             ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -1015,21 +1056,23 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             ),
           );
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               account.transferAsExpense
-                  ? 'Transferts comme dépenses désactivé'
-                  : 'Transferts comme dépenses activé',
+                  ? l10n.translate('transfers_as_expenses_disabled')
+                  : l10n.translate('transfers_as_expenses_enabled'),
             ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-    );
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${l10n.error}: $e')),
+        );
       }
     }
   }
