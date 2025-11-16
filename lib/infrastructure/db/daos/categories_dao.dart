@@ -12,6 +12,10 @@ class CategoriesDao extends DatabaseAccessor<AppDatabase>
     return select(categories).get();
   }
 
+  Stream<List<Category>> watchAllCategories() {
+    return select(categories).watch();
+  }
+
   Future<List<Category>> getCategoriesByType(String type) {
     return (select(categories)..where((c) => c.type.equals(type))).get();
   }

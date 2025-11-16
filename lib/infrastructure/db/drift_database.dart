@@ -101,6 +101,15 @@ class Goals extends Table {
       dateTime().withDefault(currentDateAndTime)();
 }
 
+// Table CustomCurrencies
+class CustomCurrencies extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get code => text()(); // Code ISO 4217 (ex: 'USD', 'EUR')
+  TextColumn get name => text()(); // Nom de la devise (ex: 'US Dollar', 'Euro')
+  TextColumn get symbol => text().nullable()(); // Symbole (ex: '$', '€')
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // Table Settings
 class Settings extends Table {
   IntColumn get id => integer().withDefault(const Constant(1))();
@@ -111,6 +120,9 @@ class Settings extends Table {
   BoolColumn get isPremium => boolean().withDefault(const Constant(false))();
   BoolColumn get biometricLockEnabled =>
       boolean().withDefault(const Constant(false))();
+  TextColumn get incomeColor => text().nullable()(); // Couleur personnalisée pour les revenus (format hex: #RRGGBB)
+  TextColumn get expenseColor => text().nullable()(); // Couleur personnalisée pour les dépenses (format hex: #RRGGBB)
+  IntColumn get decimalPlaces => integer().withDefault(const Constant(2))(); // Nombre de décimales à afficher (0-4)
 
   @override
   Set<Column> get primaryKey => {id};
@@ -124,12 +136,13 @@ class Settings extends Table {
   Budgets,
   Goals,
   Settings,
+  CustomCurrencies,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -164,6 +177,19 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           // Migration vers la version 3 : Ajouter le champ images à Transactions
           await _addColumnIfNotExists(m, transactions, transactions.images);
+        }
+        if (from < 4) {
+          // Migration vers la version 4 : Ajouter les champs de couleurs personnalisées
+          await _addColumnIfNotExists(m, settings, settings.incomeColor);
+          await _addColumnIfNotExists(m, settings, settings.expenseColor);
+        }
+        if (from < 5) {
+          // Migration vers la version 5 : Créer la table CustomCurrencies
+          await m.createTable(customCurrencies);
+        }
+        if (from < 6) {
+          // Migration vers la version 6 : Ajouter le champ decimalPlaces
+          await _addColumnIfNotExists(m, settings, settings.decimalPlaces);
         }
       },
     );
@@ -253,6 +279,7 @@ class AppDatabase extends _$AppDatabase {
         theme: Value('dark'),
         isPremium: Value(false),
         biometricLockEnabled: Value(false),
+        decimalPlaces: Value(2),
       ),
     );
   }

@@ -4,6 +4,8 @@ import 'daos/accounts_dao.dart';
 import 'daos/categories_dao.dart';
 import 'daos/transactions_dao.dart';
 import 'daos/settings_dao.dart';
+import 'daos/custom_currencies_dao.dart';
+import 'daos/recurring_rules_dao.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   return AppDatabase();
@@ -25,6 +27,14 @@ final settingsDaoProvider = Provider<SettingsDao>((ref) {
   return SettingsDao(ref.watch(databaseProvider));
 });
 
+final customCurrenciesDaoProvider = Provider<CustomCurrenciesDao>((ref) {
+  return CustomCurrenciesDao(ref.watch(databaseProvider));
+});
+
+final recurringRulesDaoProvider = Provider<RecurringRulesDao>((ref) {
+  return RecurringRulesDao(ref.watch(databaseProvider));
+});
+
 // Stream providers pour les données réactives
 final settingsStreamProvider = StreamProvider((ref) {
   return ref.watch(settingsDaoProvider).watchSettings();
@@ -36,6 +46,10 @@ final transactionsStreamProvider = StreamProvider((ref) {
 
 final accountsStreamProvider = StreamProvider((ref) {
   return ref.watch(accountsDaoProvider).watchAllAccounts();
+});
+
+final categoriesStreamProvider = StreamProvider<List<Category>>((ref) {
+  return ref.watch(categoriesDaoProvider).watchAllCategories();
 });
 
 // Providers pour les comptes par catégorie
@@ -62,5 +76,15 @@ final totalLiabilitiesProvider = FutureProvider<double>((ref) {
 
 final netWorthProvider = FutureProvider<double>((ref) {
   return ref.watch(accountsDaoProvider).getNetWorth();
+});
+
+// Provider pour les devises personnalisées
+final customCurrenciesStreamProvider = StreamProvider((ref) {
+  return ref.watch(customCurrenciesDaoProvider).watchAllCustomCurrencies();
+});
+
+// Provider pour les règles récurrentes
+final recurringRulesStreamProvider = StreamProvider((ref) {
+  return ref.watch(recurringRulesDaoProvider).watchAllRecurringRules();
 });
 

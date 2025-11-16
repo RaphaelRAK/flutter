@@ -13,6 +13,8 @@ import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/daily/presentation/screens/daily_screen.dart';
 import '../features/screenshots/presentation/screens/screenshots_screen.dart';
 import '../features/help/presentation/screens/help_center_screen.dart';
+import '../features/transactions/presentation/screens/recurring_transactions_screen.dart';
+import '../features/transactions/presentation/screens/add_recurring_transaction_screen.dart';
 import '../core/utils/preferences_helper.dart';
 import '../infrastructure/db/drift_database.dart';
 
@@ -94,6 +96,19 @@ final appRouterProvider = FutureProvider<GoRouter>((ref) async {
         path: '/help',
         name: 'help',
         builder: (context, state) => const HelpCenterScreen(),
+      ),
+      GoRoute(
+        path: '/recurring-transactions',
+        name: 'recurring-transactions',
+        builder: (context, state) => const RecurringTransactionsScreen(),
+      ),
+      GoRoute(
+        path: '/add-recurring-transaction',
+        name: 'add-recurring-transaction',
+        builder: (context, state) {
+          final rule = state.extra as RecurringRule?;
+          return AddRecurringTransactionScreen(ruleToEdit: rule);
+        },
       ),
     ],
   );
