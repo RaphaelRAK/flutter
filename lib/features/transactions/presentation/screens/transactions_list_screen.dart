@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../widgets/transactions_calendar_view.dart';
 import '../widgets/transactions_weekly_view.dart';

@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../../infrastructure/db/database_provider.dart';
 import '../../../../infrastructure/db/drift_database.dart';
-import '../../../../core/utils/constants.dart';
-import '../../../../core/utils/preferences_helper.dart';
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/helpers/preferences_helper.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});

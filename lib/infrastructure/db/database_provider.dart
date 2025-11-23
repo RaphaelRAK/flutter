@@ -7,7 +7,7 @@ import 'daos/settings_dao.dart';
 import 'daos/custom_currencies_dao.dart';
 import 'daos/recurring_rules_dao.dart';
 import 'daos/reminders_dao.dart';
-import '../../core/utils/transaction_filters_helper.dart';
+import '../../core/utils/helpers/transaction_filters_helper.dart';
 import '../../features/settings/presentation/screens/transaction_filters_screen.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {

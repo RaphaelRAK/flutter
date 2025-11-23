@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart' as local_auth;
 import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/utils/lock_helper.dart';
+import '../../../../../core/utils/helpers/lock_helper.dart';
 
 class LockScreen extends ConsumerStatefulWidget {
   final VoidCallback? onUnlock;

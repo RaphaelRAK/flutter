@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
-import '../../../../../core/utils/transaction_filters_helper.dart';
-import '../../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../../core/utils/helpers/transaction_filters_helper.dart';
+import '../../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 
 final transactionFiltersProvider =
     StateNotifierProvider<TransactionFiltersNotifier, TransactionFilters?>(

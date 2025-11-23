@@ -4,7 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'router/app_router.dart';
 import 'infrastructure/db/database_provider.dart';
-import 'core/widgets/lock_wrapper.dart';
+import 'core/widgets/navigation/lock_wrapper.dart';
 import 'core/localization/app_localizations.dart';
 
 class App extends ConsumerWidget {

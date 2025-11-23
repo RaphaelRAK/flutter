@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../infrastructure/db/database_provider.dart';
 import '../../../../infrastructure/db/drift_database.dart';
-import '../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../core/services/notification_service.dart';
 
 class RemindersScreen extends ConsumerWidget {

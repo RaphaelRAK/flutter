@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart' as local_auth;
 import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart' show Value;
-import '../../../../../core/utils/lock_helper.dart';
+import '../../../../../core/utils/helpers/lock_helper.dart';
 import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 
 class LockSetupScreen extends ConsumerStatefulWidget {
   const LockSetupScreen({super.key});

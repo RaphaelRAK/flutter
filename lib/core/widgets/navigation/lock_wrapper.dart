@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../infrastructure/db/database_provider.dart';
-import '../../features/settings/presentation/screens/lock_screen.dart';
-import '../../core/utils/lock_helper.dart';
-import '../../core/theme/app_theme.dart';
+import '../../../infrastructure/db/database_provider.dart';
+import '../../../features/settings/presentation/screens/lock_screen.dart';
+import '../../utils/helpers/lock_helper.dart';
+import '../../theme/app_theme.dart';
 
 class LockWrapper extends ConsumerStatefulWidget {
   final Widget child;

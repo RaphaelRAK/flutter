@@ -6,7 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../../core/utils/category_icons.dart';
 import '../../../transactions/presentation/widgets/transaction_detail_dialog.dart';
 import '../../../accounts/presentation/screens/accounts_screen.dart';

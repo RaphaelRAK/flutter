@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../../core/localization/app_localizations.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {

@@ -20,7 +20,7 @@ import '../features/settings/presentation/screens/add_reminder_screen.dart';
 import '../features/settings/presentation/screens/transaction_filters_screen.dart';
 import '../features/settings/presentation/screens/lock_screen.dart';
 import '../features/settings/presentation/screens/lock_setup_screen.dart';
-import '../core/utils/preferences_helper.dart';
+import '../core/utils/helpers/preferences_helper.dart';
 import '../infrastructure/db/drift_database.dart';
 
 final appRouterProvider = FutureProvider<GoRouter>((ref) async {

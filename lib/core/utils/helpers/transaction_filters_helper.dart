@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../infrastructure/db/drift_database.dart';
+import '../../../infrastructure/db/drift_database.dart';
 
 class TransactionFilters {
   final List<String>? types; // 'expense', 'income', 'transfer' ou null pour tous

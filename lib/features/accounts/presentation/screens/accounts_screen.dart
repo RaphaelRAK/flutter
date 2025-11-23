@@ -6,7 +6,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/widgets/main_bottom_nav_bar.dart';
+import '../../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../../core/localization/app_localizations.dart';
 
 class AccountsScreen extends ConsumerStatefulWidget {
