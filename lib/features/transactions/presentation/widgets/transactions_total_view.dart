@@ -7,43 +7,60 @@ import '../../../../infrastructure/db/drift_database.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class TransactionsTotalView extends ConsumerWidget {
+class TransactionsTotalView extends ConsumerStatefulWidget {
   const TransactionsTotalView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TransactionsTotalView> createState() => _TransactionsTotalViewState();
+}
+
+class _TransactionsTotalViewState extends ConsumerState<TransactionsTotalView> {
+  int? _touchedExpenseIndex;
+  int? _touchedIncomeIndex;
+
+  @override
+  Widget build(BuildContext context) {
     final transactionsAsync = ref.watch(filteredTransactionsStreamProvider);
+    final categoriesAsync = ref.watch(categoriesStreamProvider);
 
     return transactionsAsync.when(
       data: (transactions) {
-        // Calculer les totaux globaux
-        double totalIncome = 0.0;
-        double totalExpense = 0.0;
-        double totalTransfers = 0.0;
-        int transactionCount = transactions.length;
+        return categoriesAsync.when(
+          data: (categories) {
+            // Créer une Map pour associer categoryId -> nom de catégorie
+            final categoryMap = {
+              for (var category in categories) category.id: category.name
+            };
 
-        Map<String, double> expensesByCategory = {};
-        Map<String, double> incomeByCategory = {};
+            // Calculer les totaux globaux
+            double totalIncome = 0.0;
+            double totalExpense = 0.0;
+            double totalTransfers = 0.0;
+            int transactionCount = transactions.length;
 
-        for (final transaction in transactions) {
-          if (transaction.type == 'income') {
-            totalIncome += transaction.amount;
-            // TODO: Récupérer le nom de la catégorie depuis la DB
-            incomeByCategory['Catégorie'] =
-                (incomeByCategory['Catégorie'] ?? 0) + transaction.amount;
-          } else if (transaction.type == 'expense') {
-            totalExpense += transaction.amount;
-            // TODO: Récupérer le nom de la catégorie depuis la DB
-            expensesByCategory['Catégorie'] =
-                (expensesByCategory['Catégorie'] ?? 0) + transaction.amount;
-          } else if (transaction.type == 'transfer') {
-            totalTransfers += transaction.amount;
-          }
-        }
+            Map<String, double> expensesByCategory = {};
+            Map<String, double> incomeByCategory = {};
 
-        final balance = totalIncome - totalExpense;
+            for (final transaction in transactions) {
+              // Récupérer le nom de la catégorie depuis la Map
+              final categoryName = categoryMap[transaction.categoryId] ?? 'Sans catégorie';
 
-        return ListView(
+              if (transaction.type == 'income') {
+                totalIncome += transaction.amount;
+                incomeByCategory[categoryName] =
+                    (incomeByCategory[categoryName] ?? 0) + transaction.amount;
+              } else if (transaction.type == 'expense') {
+                totalExpense += transaction.amount;
+                expensesByCategory[categoryName] =
+                    (expensesByCategory[categoryName] ?? 0) + transaction.amount;
+              } else if (transaction.type == 'transfer') {
+                totalTransfers += transaction.amount;
+              }
+            }
+
+            final balance = totalIncome - totalExpense;
+
+            return ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // En-tête avec titre
@@ -138,10 +155,52 @@ class TransactionsTotalView extends ConsumerWidget {
                           PieChartData(
                             sectionsSpace: 2,
                             centerSpaceRadius: 40,
-                            sections: _buildPieChartSections(expensesByCategory),
+                            sections: _buildPieChartSections(
+                              expensesByCategory,
+                              _touchedExpenseIndex,
+                            ),
+                            pieTouchData: PieTouchData(
+                              touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                                setState(() {
+                                  if (!event.isInterestedForInteractions ||
+                                      pieTouchResponse == null ||
+                                      pieTouchResponse.touchedSection == null) {
+                                    return; // Ne pas réinitialiser, garder la sélection
+                                  }
+                                  final index = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                                  if (index >= 0 && index < expensesByCategory.length) {
+                                    _touchedExpenseIndex = index;
+                                  }
+                                });
+                              },
+                            ),
                           ),
                         ),
                       ),
+                      if (_touchedExpenseIndex != null && 
+                          _touchedExpenseIndex! >= 0 && 
+                          _touchedExpenseIndex! < expensesByCategory.length)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  expensesByCategory.keys.elementAt(_touchedExpenseIndex!),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${NumberFormat.currency(symbol: '€', decimalDigits: 2).format(expensesByCategory.values.elementAt(_touchedExpenseIndex!))} / ${NumberFormat.currency(symbol: '€', decimalDigits: 2).format(expensesByCategory.values.fold(0.0, (a, b) => a + b))}',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -169,10 +228,52 @@ class TransactionsTotalView extends ConsumerWidget {
                           PieChartData(
                             sectionsSpace: 2,
                             centerSpaceRadius: 40,
-                            sections: _buildPieChartSections(incomeByCategory),
+                            sections: _buildPieChartSections(
+                              incomeByCategory,
+                              _touchedIncomeIndex,
+                            ),
+                            pieTouchData: PieTouchData(
+                              touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                                setState(() {
+                                  if (!event.isInterestedForInteractions ||
+                                      pieTouchResponse == null ||
+                                      pieTouchResponse.touchedSection == null) {
+                                    return; // Ne pas réinitialiser, garder la sélection
+                                  }
+                                  final index = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                                  if (index >= 0 && index < incomeByCategory.length) {
+                                    _touchedIncomeIndex = index;
+                                  }
+                                });
+                              },
+                            ),
                           ),
                         ),
                       ),
+                      if (_touchedIncomeIndex != null && 
+                          _touchedIncomeIndex! >= 0 && 
+                          _touchedIncomeIndex! < incomeByCategory.length)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  incomeByCategory.keys.elementAt(_touchedIncomeIndex!),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${NumberFormat.currency(symbol: '€', decimalDigits: 2).format(incomeByCategory.values.elementAt(_touchedIncomeIndex!))} / ${NumberFormat.currency(symbol: '€', decimalDigits: 2).format(incomeByCategory.values.fold(0.0, (a, b) => a + b))}',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -219,10 +320,16 @@ class TransactionsTotalView extends ConsumerWidget {
             ),
           ],
         );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Text('Erreur catégories: $error'),
+          ),
+        );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
-        child: Text('Erreur: $error'),
+        child: Text('Erreur transactions: $error'),
       ),
     );
   }
@@ -277,7 +384,7 @@ class TransactionsTotalView extends ConsumerWidget {
   }
 
   List<PieChartSectionData> _buildPieChartSections(
-      Map<String, double> dataByCategory) {
+      Map<String, double> dataByCategory, int? touchedIndex) {
     final total = dataByCategory.values.fold(0.0, (a, b) => a + b);
     final colors = [
       AppColors.expense,
@@ -291,15 +398,17 @@ class TransactionsTotalView extends ConsumerWidget {
 
     int colorIndex = 0;
     return dataByCategory.entries.map((entry) {
+      final index = colorIndex;
       final percentage = (entry.value / total * 100);
       final color = colors[colorIndex % colors.length];
+      final isTouched = index == touchedIndex;
       colorIndex++;
 
       return PieChartSectionData(
         value: entry.value,
         title: '${percentage.toStringAsFixed(1)}%',
         color: color,
-        radius: 60,
+        radius: isTouched ? 70 : 60,
         titleStyle: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,

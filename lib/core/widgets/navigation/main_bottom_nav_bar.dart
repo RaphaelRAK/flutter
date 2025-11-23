@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_colors.dart';
 
 class MainBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -12,6 +11,8 @@ class MainBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).bottomNavigationBarTheme;
+    
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (selectedIndex) {
@@ -31,9 +32,9 @@ class MainBottomNavBar extends StatelessWidget {
         }
       },
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: AppColors.accentSecondary,
-      unselectedItemColor: AppColors.darkTextSecondary,
-      backgroundColor: AppColors.darkCard,
+      selectedItemColor: theme.selectedItemColor,
+      unselectedItemColor: theme.unselectedItemColor,
+      backgroundColor: theme.backgroundColor,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.receipt_long),
