@@ -1,6 +1,7 @@
 import '../../domain/models/account.dart';
 import '../../domain/repositories/account_repository.dart';
 import '../db/daos/accounts_dao.dart';
+import '../db/drift_database.dart';
 import '../mappers/account_mapper.dart';
 import 'package:drift/drift.dart';
 

@@ -1,6 +1,7 @@
 import '../../domain/models/category.dart';
 import '../../domain/repositories/category_repository.dart';
 import '../db/daos/categories_dao.dart';
+import '../db/drift_database.dart';
 import '../mappers/category_mapper.dart';
 import 'package:drift/drift.dart';
 

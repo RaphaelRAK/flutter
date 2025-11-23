@@ -1,6 +1,7 @@
 import '../../domain/models/transaction.dart';
 import '../../domain/repositories/transaction_repository.dart';
 import '../db/daos/transactions_dao.dart';
+import '../db/drift_database.dart';
 import '../mappers/transaction_mapper.dart';
 import 'package:drift/drift.dart';
 
