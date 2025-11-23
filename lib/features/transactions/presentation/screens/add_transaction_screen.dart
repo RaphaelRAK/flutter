@@ -11,6 +11,7 @@ import '../../../../infrastructure/db/drift_database.dart';
 import '../../../../domain/models/transaction_type.dart';
 import '../../../../core/utils/category_icons.dart';
 import '../../../../core/localization/app_localizations.dart';
+import '../widgets/location_picker_widget.dart';
 import 'dart:io';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
@@ -41,6 +42,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   bool _isInstallment = false;
   int _installmentCount = 1;
   bool _isBookmark = false;
+  double? _selectedLatitude;
+  double? _selectedLongitude;
+  String? _selectedAddress;
 
   @override
   void initState() {
@@ -54,6 +58,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       _selectedCategoryId = transaction.categoryId;
       _amountController.text = transaction.amount.toString();
       _noteController.text = transaction.description ?? '';
+      _selectedLatitude = transaction.latitude;
+      _selectedLongitude = transaction.longitude;
+      _selectedAddress = transaction.address;
       
       // Déterminer le type de transaction
       if (transaction.type == 'expense') {
@@ -176,6 +183,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
             // Images
             _buildImagesSection(),
+            const SizedBox(height: 16),
+
+            // Localisation
+            LocationPickerWidget(
+              initialLatitude: _selectedLatitude,
+              initialLongitude: _selectedLongitude,
+              initialAddress: _selectedAddress,
+              onLocationSelected: (lat, lon, address) {
+                setState(() {
+                  _selectedLatitude = lat;
+                  _selectedLongitude = lon;
+                  _selectedAddress = address;
+                });
+              },
+            ),
             const SizedBox(height: 16),
 
             // Options avancées
@@ -709,6 +731,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         _noteController.clear();
         _selectedImages.clear();
         _selectedCategoryId = null;
+        _selectedLatitude = null;
+        _selectedLongitude = null;
+        _selectedAddress = null;
         setState(() {});
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.translate('transaction_saved'))),
@@ -746,6 +771,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
             date: drift.Value(_selectedDate),
             description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
             images: drift.Value(imagesPaths),
+            latitude: drift.Value(_selectedLatitude),
+            longitude: drift.Value(_selectedLongitude),
+            address: drift.Value(_selectedAddress),
           ),
         );
         
@@ -772,6 +800,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               date: drift.Value(_selectedDate),
               description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
               images: drift.Value(imagesPaths),
+              latitude: drift.Value(_selectedLatitude),
+              longitude: drift.Value(_selectedLongitude),
+              address: drift.Value(_selectedAddress),
             ),
           );
           // Transaction entrante
@@ -784,6 +815,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               date: drift.Value(_selectedDate),
               description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
               images: drift.Value(imagesPaths),
+              latitude: drift.Value(_selectedLatitude),
+              longitude: drift.Value(_selectedLongitude),
+              address: drift.Value(_selectedAddress),
             ),
           );
         }
@@ -798,6 +832,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
               date: drift.Value(_selectedDate),
               description: drift.Value(_noteController.text.isEmpty ? null : _noteController.text),
               images: drift.Value(imagesPaths),
+              latitude: drift.Value(_selectedLatitude),
+              longitude: drift.Value(_selectedLongitude),
+              address: drift.Value(_selectedAddress),
             ),
           );
         }

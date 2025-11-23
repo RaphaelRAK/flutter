@@ -51,6 +51,9 @@ class Transactions extends Table {
   DateTimeColumn get date => dateTime()();
   TextColumn get description => text().nullable()();
   TextColumn get images => text().nullable()(); // Chemins des images séparés par des virgules
+  RealColumn get latitude => real().nullable()(); // Latitude de la transaction
+  RealColumn get longitude => real().nullable()(); // Longitude de la transaction
+  TextColumn get address => text().nullable()(); // Adresse textuelle de la transaction
   BoolColumn get isRecurringInstance =>
       boolean().withDefault(const Constant(false))();
   IntColumn get recurrenceId => integer().nullable()();
@@ -156,7 +159,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -215,6 +218,39 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(settings, settings.language);
           } catch (e) {
             // Si la colonne existe déjà, on ignore l'erreur
+            final errorStr = e.toString().toLowerCase();
+            if (!errorStr.contains('duplicate column') && 
+                !errorStr.contains('already exists') &&
+                !errorStr.contains('sql logic error')) {
+              rethrow;
+            }
+          }
+        }
+        if (from < 9) {
+          // Migration vers la version 9 : Ajouter les champs de géolocalisation
+          try {
+            await m.addColumn(transactions, transactions.latitude);
+          } catch (e) {
+            final errorStr = e.toString().toLowerCase();
+            if (!errorStr.contains('duplicate column') && 
+                !errorStr.contains('already exists') &&
+                !errorStr.contains('sql logic error')) {
+              rethrow;
+            }
+          }
+          try {
+            await m.addColumn(transactions, transactions.longitude);
+          } catch (e) {
+            final errorStr = e.toString().toLowerCase();
+            if (!errorStr.contains('duplicate column') && 
+                !errorStr.contains('already exists') &&
+                !errorStr.contains('sql logic error')) {
+              rethrow;
+            }
+          }
+          try {
+            await m.addColumn(transactions, transactions.address);
+          } catch (e) {
             final errorStr = e.toString().toLowerCase();
             if (!errorStr.contains('duplicate column') && 
                 !errorStr.contains('already exists') &&

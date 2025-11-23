@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../infrastructure/db/drift_database.dart';
 import '../../../../infrastructure/db/database_provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'transaction_location_map.dart';
 
 class TransactionDetailDialog extends ConsumerWidget {
   final Transaction transaction;
@@ -143,6 +144,15 @@ class TransactionDetailDialog extends ConsumerWidget {
               Icons.category,
             ),
             const SizedBox(height: 12),
+            // Localisation
+            if (transaction.latitude != null && transaction.longitude != null)
+              TransactionLocationMap(
+                latitude: transaction.latitude!,
+                longitude: transaction.longitude!,
+                address: transaction.address,
+              ),
+            if (transaction.latitude != null && transaction.longitude != null)
+              const SizedBox(height: 12),
             // Images
             if (transaction.images != null && transaction.images!.isNotEmpty)
               _buildImagesSection(context, transaction.images!),

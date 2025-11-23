@@ -9,6 +9,9 @@ class DomainTransaction {
   final DateTime date;
   final String? description;
   final String? images; // Chemins des images séparés par des virgules
+  final double? latitude; // Latitude de la transaction
+  final double? longitude; // Longitude de la transaction
+  final String? address; // Adresse textuelle de la transaction
   final bool isRecurringInstance;
   final int? recurrenceId;
   final DateTime createdAt;
@@ -23,6 +26,9 @@ class DomainTransaction {
     required this.date,
     this.description,
     this.images,
+    this.latitude,
+    this.longitude,
+    this.address,
     required this.isRecurringInstance,
     this.recurrenceId,
     required this.createdAt,
@@ -38,6 +44,9 @@ class DomainTransaction {
     DateTime? date,
     String? description,
     String? images,
+    double? latitude,
+    double? longitude,
+    String? address,
     bool? isRecurringInstance,
     int? recurrenceId,
     DateTime? createdAt,
@@ -52,6 +61,9 @@ class DomainTransaction {
       date: date ?? this.date,
       description: description ?? this.description,
       images: images ?? this.images,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      address: address ?? this.address,
       isRecurringInstance: isRecurringInstance ?? this.isRecurringInstance,
       recurrenceId: recurrenceId ?? this.recurrenceId,
       createdAt: createdAt ?? this.createdAt,
