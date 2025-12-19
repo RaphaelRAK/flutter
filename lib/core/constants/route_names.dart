@@ -29,6 +29,7 @@ class RouteNames {
   
   // Settings
   static const String settings = '/settings';
+  static const String premium = '/premium';
   static const String reminders = '/reminders';
   static const String addReminder = '/add-reminder';
   static const String transactionFilters = '/transaction-filters';

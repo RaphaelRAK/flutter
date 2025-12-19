@@ -6,6 +6,8 @@ import '../../../../../infrastructure/db/database_provider.dart';
 import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../../domain/models/recurrence_frequency.dart';
+import '../../../../../core/services/premium_service.dart';
+import '../../../../../core/widgets/premium_limit_widget.dart';
 
 class RecurringTransactionsScreen extends ConsumerWidget {
   const RecurringTransactionsScreen({super.key});
@@ -22,7 +24,27 @@ class RecurringTransactionsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
+            onPressed: () async {
+              // Vérifier la limite premium
+              final canCreate = await PremiumService.canCreateRecurringTransaction(ref);
+              if (!canCreate) {
+                final recurringRules = await ref.read(recurringRulesDaoProvider).getAllRecurringRules();
+                final activeRules = recurringRules.where((r) => r.isActive).length;
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Limite atteinte'),
+                    content: PremiumLimitWidget(
+                      title: 'Limite de transactions récurrentes atteinte',
+                      message: 'La version gratuite permet d\'avoir 3 transactions récurrentes. Passez à Premium pour créer des transactions récurrentes illimitées.',
+                      icon: Icons.repeat,
+                      currentCount: '$activeRules',
+                      maxCount: '3',
+                    ),
+                  ),
+                );
+                return;
+              }
               context.push('/add-recurring-transaction');
             },
           ),

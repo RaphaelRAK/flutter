@@ -11,6 +11,8 @@ import '../../../../infrastructure/db/drift_database.dart';
 import '../../../../domain/models/transaction_type.dart';
 import '../../../../core/utils/category_icons.dart';
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/services/premium_service.dart';
+import '../../../../core/widgets/premium_limit_widget.dart';
 import '../widgets/location_picker_widget.dart';
 import 'dart:io';
 
@@ -598,6 +600,27 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    // Vérifier la limite premium pour les photos
+    final canAddPhoto = await PremiumService.canAddPhotoToTransaction(ref, _selectedImages.length);
+    if (!canAddPhoto) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Limite atteinte'),
+            content: PremiumLimitWidget(
+              title: 'Limite de photos atteinte',
+              message: 'La version gratuite permet d\'ajouter 1 photo par transaction. Passez à Premium pour ajouter des photos illimitées.',
+              icon: Icons.photo_library,
+              currentCount: '${_selectedImages.length}',
+              maxCount: '1',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+    
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: source);
     if (image != null) {
@@ -908,6 +931,29 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   void _showAddCategoryDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
+    
+    // Vérifier la limite premium
+    final canCreate = await PremiumService.canCreateCustomCategory(ref);
+    if (!canCreate) {
+      final categories = await ref.read(categoriesDaoProvider).getAllCategories();
+      final customCategories = categories.where((c) => !c.isDefault).length;
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Limite atteinte'),
+          content: PremiumLimitWidget(
+            title: 'Limite de catégories personnalisées atteinte',
+            message: 'La version gratuite permet d\'avoir 5 catégories personnalisées. Passez à Premium pour créer des catégories illimitées.',
+            icon: Icons.category,
+            currentCount: '$customCategories',
+            maxCount: '5',
+          ),
+        ),
+      );
+      return;
+    }
+    
     final nameController = TextEditingController();
     String selectedIcon = 'category';
     String selectedColor = '#6B7280';

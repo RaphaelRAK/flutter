@@ -8,6 +8,8 @@ import '../../../../../infrastructure/db/drift_database.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../../core/localization/app_localizations.dart';
+import '../../../../../core/services/premium_service.dart';
+import '../../../../../core/widgets/premium_limit_widget.dart';
 
 class AccountsScreen extends ConsumerStatefulWidget {
   const AccountsScreen({super.key});
@@ -608,8 +610,31 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     );
   }
 
-  void _showAddAccountDialog(BuildContext context) {
+  void _showAddAccountDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
+    
+    // Vérifier la limite premium
+    final canCreate = await PremiumService.canCreateAccount(ref);
+    if (!canCreate) {
+      final accounts = await ref.read(accountsDaoProvider).getAllAccounts();
+      final activeAccounts = accounts.where((a) => !a.archived).length;
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Limite atteinte'),
+          content: PremiumLimitWidget(
+            title: 'Limite de comptes atteinte',
+            message: 'La version gratuite permet d\'avoir 1 compte. Passez à Premium pour créer des comptes illimités.',
+            icon: Icons.account_balance_wallet,
+            currentCount: '$activeAccounts',
+            maxCount: '1',
+          ),
+        ),
+      );
+      return;
+    }
+    
     final nameController = TextEditingController();
     final balanceController = TextEditingController();
     final notesController = TextEditingController();

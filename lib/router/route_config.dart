@@ -20,6 +20,7 @@ import '../features/settings/presentation/screens/add_reminder_screen.dart';
 import '../features/settings/presentation/screens/transaction_filters_screen.dart';
 import '../features/settings/presentation/screens/lock_screen.dart';
 import '../features/settings/presentation/screens/lock_setup_screen.dart';
+import '../features/settings/presentation/screens/premium_screen.dart';
 import '../infrastructure/db/drift_database.dart';
 
 /// Configuration des routes de l'application
@@ -63,6 +64,11 @@ class RouteConfig {
         path: RouteNames.settings,
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.premium,
+        name: 'premium',
+        builder: (context, state) => const PremiumScreen(),
       ),
       GoRoute(
         path: RouteNames.features,

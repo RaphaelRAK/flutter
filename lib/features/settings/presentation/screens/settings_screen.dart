@@ -48,6 +48,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         _buildColorCustomization(context, settings),
         const SizedBox(height: 24),
 
+        // Premium
+        _buildPremiumSection(context, settings),
+        const SizedBox(height: 24),
+
         // Général
         _buildSectionHeader(context, l10n.translate('general')),
         _buildLanguageSelector(context, settings),
@@ -92,6 +96,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumSection(BuildContext context, dynamic settings) {
+    final l10n = AppLocalizations.of(context)!;
+    final isPremium = settings.isPremium;
+    
+    return Card(
+      elevation: isPremium ? 2 : 4,
+      color: isPremium ? null : AppColors.primary.withOpacity(0.1),
+      child: ListTile(
+        leading: Icon(
+          isPremium ? Icons.verified : Icons.star,
+          color: isPremium ? Colors.amber : AppColors.primary,
+        ),
+        title: Text(
+          isPremium ? 'Premium Actif' : 'Passer à Premium',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isPremium ? null : AppColors.primary,
+          ),
+        ),
+        subtitle: Text(
+          isPremium
+              ? 'Vous profitez de toutes les fonctionnalités premium'
+              : 'Débloquez toutes les fonctionnalités avancées',
+        ),
+        trailing: isPremium
+            ? const Icon(Icons.check_circle, color: Colors.green)
+            : const Icon(Icons.chevron_right),
+        onTap: () => context.push('/premium'),
       ),
     );
   }

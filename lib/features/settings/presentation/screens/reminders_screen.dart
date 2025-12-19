@@ -6,6 +6,8 @@ import '../../../../infrastructure/db/database_provider.dart';
 import '../../../../infrastructure/db/drift_database.dart';
 import '../../../../core/widgets/navigation/main_bottom_nav_bar.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/premium_service.dart';
+import '../../../../core/widgets/premium_limit_widget.dart';
 
 class RemindersScreen extends ConsumerWidget {
   const RemindersScreen({super.key});
@@ -81,7 +83,26 @@ class RemindersScreen extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
+            onPressed: () async {
+              // Vérifier la limite premium
+              final canCreate = await PremiumService.canCreateReminder(ref);
+              if (!canCreate) {
+                final reminders = await ref.read(remindersDaoProvider).getAllReminders();
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Limite atteinte'),
+                    content: PremiumLimitWidget(
+                      title: 'Limite de rappels atteinte',
+                      message: 'La version gratuite permet d\'avoir 1 rappel. Passez à Premium pour créer des rappels illimités.',
+                      icon: Icons.notifications,
+                      currentCount: '${reminders.length}',
+                      maxCount: '1',
+                    ),
+                  ),
+                );
+                return;
+              }
               context.push('/add-reminder');
             },
           ),
