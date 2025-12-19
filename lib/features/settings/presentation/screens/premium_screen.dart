@@ -72,7 +72,7 @@ class PremiumScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+                colors: [AppColors.accentSecondary, AppColors.accentSecondary.withOpacity(0.7)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -229,7 +229,7 @@ class PremiumScreen extends ConsumerWidget {
                           Text(
                             '2,99€ / mois',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: AppColors.primary,
+                                  color: AppColors.accentSecondary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -238,7 +238,7 @@ class PremiumScreen extends ConsumerWidget {
                       ElevatedButton(
                         onPressed: () => _handlePurchase(context, ref, 'monthly'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: AppColors.accentSecondary,
                           foregroundColor: Colors.white,
                         ),
                         child: const Text('S\'abonner'),
@@ -254,7 +254,7 @@ class PremiumScreen extends ConsumerWidget {
           // Abonnement annuel (meilleure valeur)
           Card(
             elevation: 4,
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.accentSecondary.withOpacity(0.1),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -296,7 +296,7 @@ class PremiumScreen extends ConsumerWidget {
                           Text(
                             '19,99€ / an',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: AppColors.primary,
+                                  color: AppColors.accentSecondary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -312,7 +312,7 @@ class PremiumScreen extends ConsumerWidget {
                       ElevatedButton(
                         onPressed: () => _handlePurchase(context, ref, 'yearly'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: AppColors.accentSecondary,
                           foregroundColor: Colors.white,
                         ),
                         child: const Text('S\'abonner'),
@@ -349,7 +349,7 @@ class PremiumScreen extends ConsumerWidget {
                           Text(
                             '14,99€ (à vie)',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: AppColors.primary,
+                                  color: AppColors.accentSecondary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -358,7 +358,7 @@ class PremiumScreen extends ConsumerWidget {
                       ElevatedButton(
                         onPressed: () => _handlePurchase(context, ref, 'lifetime'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: AppColors.accentSecondary,
                           foregroundColor: Colors.white,
                         ),
                         child: const Text('Acheter'),
@@ -413,10 +413,10 @@ class PremiumScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.accentSecondary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: AppColors.primary),
+            child: Icon(icon, color: AppColors.accentSecondary),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -505,7 +505,7 @@ class PremiumScreen extends ConsumerWidget {
             child: Text(
               premium,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.primary,
+                    color: AppColors.accentSecondary,
                     fontWeight: FontWeight.bold,
                   ),
               textAlign: TextAlign.center,

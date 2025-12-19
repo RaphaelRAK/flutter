@@ -106,17 +106,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     
     return Card(
       elevation: isPremium ? 2 : 4,
-      color: isPremium ? null : AppColors.primary.withOpacity(0.1),
+      color: isPremium ? null : AppColors.accentSecondary.withOpacity(0.1),
       child: ListTile(
         leading: Icon(
           isPremium ? Icons.verified : Icons.star,
-          color: isPremium ? Colors.amber : AppColors.primary,
+          color: isPremium ? Colors.amber : AppColors.accentSecondary,
         ),
         title: Text(
           isPremium ? 'Premium Actif' : 'Passer à Premium',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: isPremium ? null : AppColors.primary,
+            color: isPremium ? null : AppColors.accentSecondary,
           ),
         ),
         subtitle: Text(

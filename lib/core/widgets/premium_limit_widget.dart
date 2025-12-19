@@ -22,7 +22,7 @@ class PremiumLimitWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.primary.withOpacity(0.1),
+      color: AppColors.accentSecondary.withOpacity(0.1),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -31,14 +31,14 @@ class PremiumLimitWidget extends StatelessWidget {
             Icon(
               icon,
               size: 48,
-              color: AppColors.primary,
+              color: AppColors.accentSecondary,
             ),
             const SizedBox(height: 16),
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: AppColors.accentSecondary,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -66,7 +66,7 @@ class PremiumLimitWidget extends StatelessWidget {
               icon: const Icon(Icons.star),
               label: const Text('Passer à Premium'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.accentSecondary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),

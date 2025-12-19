@@ -26,13 +26,7 @@ class PremiumService {
 
   /// Stream pour surveiller le statut premium
   static Stream<bool> watchPremiumStatus(WidgetRef ref) {
-    return ref.watch(settingsStreamProvider).asyncMap((settings) async {
-      return settings.when(
-        data: (settings) => settings.isPremium,
-        loading: () => false,
-        error: (_, __) => false,
-      );
-    });
+    return ref.watch(settingsDaoProvider).watchSettings().map((settings) => settings.isPremium);
   }
 
   /// Vérifie si l'utilisateur peut créer un nouveau compte
@@ -128,12 +122,6 @@ class PremiumService {
 
 /// Provider pour le statut premium
 final premiumStatusProvider = StreamProvider<bool>((ref) {
-  return ref.watch(settingsStreamProvider).map((settings) {
-    return settings.when(
-      data: (settings) => settings.isPremium,
-      loading: () => false,
-      error: (_, __) => false,
-    );
-  });
+  return ref.watch(settingsDaoProvider).watchSettings().map((settings) => settings.isPremium);
 });
 
